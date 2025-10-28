@@ -11,6 +11,11 @@
 - [x] Make waveform bars twice as tall in fixed-height container
 - [x] Reduce active microphone size to 1/3rd current size
 - [x] Match microphone and waveform colors
+- [x] Make inactive and muted microphone sizes identical (80px, centered)
+- [x] Position active microphone below waveform inside circle
+- [x] Hide waveform bars in inactive/muted states
+- [x] Fix muted circle opacity to 50% using rgba without affecting icon opacity
+- [x] Increase circle size by 50% (375px from 250px)
 - **Location:** `index.html`
 
 ## Context
@@ -28,13 +33,19 @@ Polish the UI with several refinements:
 - Waveform bars should be twice as tall in fixed container
 - Active microphone should be 1/3rd current size
 - Microphone color should match waveform color
+- Inactive and muted states should have identical microphone sizes (80px, centered)
+- Active state should position microphone below waveform
+- Circle opacity at 50% in muted state using rgba
+- Circle size increased by 50% (375px)
 
 ## Design Notes
 
-- Muted state: 50% opacity on orb with visible microphone (gray, line through it)
-- Active state: Waveform bars twice as tall (300px max), microphone 1/3rd size, matching colors
+**Three States:**
+- **Inactive state**: Large centered microphone (80px), gray color, no waveform
+- **Muted state**: Large centered microphone (80px), gray with line through it, 50% opacity circle (rgba), no waveform
+- **Active state**: Waveform bars twice as tall (300px max), small microphone (25px) below waveform, matching purple colors
+
 - Fixed container heights prevent dynamic size changes during speech
-- Microphone icon: Position below waveform bars, smaller size in active state
 - Status text: Gray color for "You are muted"
 - Copy button: Top right corner of transcription box
 - Voice detection: 3 second delay before showing message to account for natural speech pauses
