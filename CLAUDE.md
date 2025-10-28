@@ -4,23 +4,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Task Workflow
 
-**1. Create task in `tasks.md`:**
+**1. Create task file `tasks/task-N.md`:**
 ```markdown
-### Task N: Task Title
+# Task N: Task Title
+
 - [ ] Subtask 1
 - [ ] Subtask 2
-- Location: `path/to/files`
+- **Location:** `path/to/files`
+
+## Context/Design/Notes
+...
 ```
 
-**2. Before starting, verify work isn't already done:**
+**2. Verify work isn't already done:**
 - Check codebase for task's changes
 - Review files in Location field
 - If complete but unmarked:
-  - Mark subtasks `[x]` in tasks.md
+  - Mark subtasks `[x]` in task file
   - Commit with `[Task-N]` tag
-  - Push and skip to next task
+  - Skip to next task
 
-**3. Complete subtasks, mark `[x]` in tasks.md**
+**3. Complete subtasks, mark `[x]` in task file**
 
 **4. Commit:**
 ```bash
@@ -50,29 +54,19 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 ### Quick Start
 ```bash
-# One-command setup and launch (recommended)
-./run.sh
+./run.sh        # Setup + launch (shows help)
+./run.sh start  # Setup + launch server
+./run.sh setup  # Setup only (venv + deps)
+./run.sh stop   # Kill server
 ```
 
-This script:
-- Creates Python virtual environment (if needed)
-- Installs/updates all dependencies
-- Launches Flask server in new terminal window
-- Opens browser automatically at http://localhost:10000
+Server runs on port 10000, auto-opens browser at http://localhost:10000
 
-### Manual Commands (if not using run.sh)
-
+### Manual Commands
 ```bash
-# Create virtual environment
 python3 -m venv venv
-
-# Activate virtual environment
 source venv/bin/activate
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Run Flask server (port 10000)
 python3 server.py
 ```
 
