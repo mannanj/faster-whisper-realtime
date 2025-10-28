@@ -1,16 +1,16 @@
 # Task 13: Always-On Ambient Transcription UI
 
-- [ ] Auto-start recording on page load (after permission consent)
-- [ ] Remove Start/Stop/Clear buttons from UI
-- [ ] Replace UI with large centered microphone orb visualization
-- [ ] Add animated waveform inside orb that responds to voice detection
-- [ ] Display "No voice detected" message when silent
-- [ ] Add pulsing glow effect behind orb when actively recording
-- [ ] Implement mute toggle by clicking the orb
-- [ ] Show line-through mic icon and grayscale/opacity change when muted
-- [ ] Move language and duration info to subtle text below orb
-- [ ] Remove "Powered by faster-whisper" branding
-- [ ] Display transcription text in real-time as it streams
+- [x] Auto-start recording on page load (after permission consent)
+- [x] Remove Start/Stop/Clear buttons from UI
+- [x] Replace UI with large centered microphone orb visualization
+- [x] Add animated waveform inside orb that responds to voice detection
+- [x] Display "No voice detected" message when silent
+- [x] Add pulsing glow effect behind orb when actively recording
+- [x] Implement mute toggle by clicking the orb
+- [x] Show line-through mic icon and grayscale/opacity change when muted
+- [x] Move language and duration info to subtle text below orb
+- [x] Remove "Powered by faster-whisper" branding
+- [x] Display transcription text in real-time as it streams
 - **Location:** `index.html`
 
 ## Purpose
