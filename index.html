@@ -88,7 +88,7 @@
             opacity: 0.5;
         }
 
-        .orb[data-state="muted"] .waveform-container {
+        .orb[data-state="muted"] .waveform-bars {
             display: none;
         }
 
@@ -126,6 +126,7 @@
             align-items: center;
             justify-content: center;
             gap: 4px;
+            height: 300px;
         }
 
         .waveform-bar {
@@ -136,24 +137,23 @@
         }
 
         .mic-icon {
-            width: 50px;
-            height: 50px;
+            width: 17px;
+            height: 17px;
             position: relative;
             z-index: 10;
+            stroke: #667eea;
         }
 
         .orb[data-state="inactive"] .mic-icon {
             width: 80px;
             height: 80px;
+            stroke: #333;
         }
 
         .orb[data-state="muted"] .mic-icon {
             width: 80px;
             height: 80px;
-        }
-
-        .orb[data-state="muted"] .mic-icon {
-            filter: grayscale(100%);
+            stroke: #999;
         }
 
         .orb[data-state="muted"] .mic-icon::after {
@@ -163,7 +163,7 @@
             left: -10%;
             right: -10%;
             height: 3px;
-            background: #f5576c;
+            background: #999;
             transform: translateY(-50%) rotate(-45deg);
         }
 
@@ -413,7 +413,7 @@
 
                 waveformBars.forEach((bar, index) => {
                     const value = dataArray[index * 8] || 0;
-                    const height = Math.max(20, (value / 255) * 150);
+                    const height = Math.max(40, (value / 255) * 300);
                     bar.style.height = `${height}px`;
                 });
 
