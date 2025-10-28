@@ -74,7 +74,7 @@
         }
 
         .orb[data-state="inactive"] {
-            background: #e0e0e0;
+            background: rgba(74, 222, 128, 0.5);
         }
 
         .orb[data-state="active"] {
@@ -146,28 +146,24 @@
             height: 80px;
             position: relative;
             z-index: 10;
-            stroke: #333;
+            stroke: #999;
         }
 
         .orb[data-state="active"] .mic-icon {
-            width: 25px;
-            height: 25px;
+            width: 50px;
+            height: 50px;
             stroke: #667eea;
+            transform: translateY(-50px);
         }
 
         .orb[data-state="muted"] .mic-icon {
             stroke: #999;
+            width: 80px;
+            height: 80px;
         }
 
-        .orb[data-state="muted"] .mic-icon::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: -10%;
-            right: -10%;
-            height: 3px;
-            background: #999;
-            transform: translateY(-50%) rotate(-45deg);
+        .orb[data-state="muted"] .mic-strike {
+            display: block !important;
         }
 
         .metadata {
@@ -318,6 +314,7 @@
                             <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
                             <line x1="12" y1="19" x2="12" y2="23"></line>
                             <line x1="8" y1="23" x2="16" y2="23"></line>
+                            <line class="mic-strike" x1="3" y1="3" x2="21" y2="21" stroke-width="2.5" style="display: none;"></line>
                         </svg>
                     </div>
                 </div>
