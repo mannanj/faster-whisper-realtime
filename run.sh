@@ -13,7 +13,7 @@ show_help() {
     echo "Commands:"
     echo "  start                  - Setup and launch server"
     echo "  setup                  - Create venv and install dependencies only"
-    echo "  stop                   - Stop server running on port 5000"
+    echo "  stop                   - Stop server running on port 10000"
     echo "  help                   - Show this help message"
     echo ""
     echo "Examples:"
@@ -62,7 +62,7 @@ setup_environment() {
 # Function to start the server
 start_server() {
     # Open browser after a short delay (in background)
-    (sleep 5 && open http://localhost:5000) &
+    (sleep 5 && open http://localhost:10000) &
 
     # Open a new terminal window and run the server
     osascript <<EOF
@@ -73,7 +73,7 @@ end tell
 EOF
 
     echo "🎙️  Opening new terminal window for server..."
-    echo "🌐 Browser will open automatically at http://localhost:5000"
+    echo "🌐 Browser will open automatically at http://localhost:10000"
 }
 
 # Function to stop the server
@@ -82,11 +82,11 @@ stop_server() {
     echo "==========================================="
     echo ""
 
-    # Find all processes using port 5000
-    PIDS=$(lsof -ti:5000 2>/dev/null)
+    # Find all processes using port 10000
+    PIDS=$(lsof -ti:10000 2>/dev/null)
 
     if [ -z "$PIDS" ]; then
-        echo "ℹ️  No process found running on port 5000"
+        echo "ℹ️  No process found running on port 10000"
         exit 0
     fi
 
@@ -105,7 +105,7 @@ stop_server() {
 
     # Show what we found
     if [ ! -z "$SERVER_PIDS" ]; then
-        echo "🔍 Found server.py process(es) on port 5000:"
+        echo "🔍 Found server.py process(es) on port 10000:"
         for PID in $SERVER_PIDS; do
             PROCESS_INFO=$(ps -p $PID -o pid=,args= 2>/dev/null)
             echo "   PID $PROCESS_INFO"
@@ -114,13 +114,11 @@ stop_server() {
     fi
 
     if [ ! -z "$OTHER_PIDS" ]; then
-        echo "⚠️  Found other process(es) on port 5000 (will not kill):"
+        echo "⚠️  Found other process(es) on port 10000 (will not kill):"
         for PID in $OTHER_PIDS; do
             PROCESS_INFO=$(ps -p $PID -o pid=,comm= 2>/dev/null)
             echo "   PID $PROCESS_INFO"
         done
-        echo "   Note: On macOS, this is often AirPlay Receiver (ControlCenter)"
-        echo "   Disable it in: System Preferences → General → AirDrop & Handoff"
         echo ""
     fi
 

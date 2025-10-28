@@ -64,14 +64,14 @@ When running `run.sh` for the first time (with model download), the server appea
 5. **Error handling**: Handle cases where no process is running, permission issues, etc.
 
 ### Task 3: Change default port from 5000 to avoid macOS conflicts
-- [ ] Choose alternative port (5001, 8000, or 8080)
-- [ ] Update server.py with new port
-- [ ] Update run.sh browser launch URL
-- [ ] Update run.sh stop command to use new port
-- [ ] Check index.html for hardcoded port references
-- [ ] Update README.md with new port
-- [ ] Update CLAUDE.md with new port references
-- [ ] Test server on new port
+- [x] Choose alternative port (5001, 8000, or 8080)
+- [x] Update server.py with new port
+- [x] Update run.sh browser launch URL
+- [x] Update run.sh stop command to use new port
+- [x] Check index.html for hardcoded port references
+- [x] Update README.md with new port
+- [x] Update CLAUDE.md with new port references
+- [x] Test server on new port
 - Location: `server.py`, `run.sh`, `index.html`, `README.md`, `CLAUDE.md`
 
 **Problem:**

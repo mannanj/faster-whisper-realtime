@@ -55,6 +55,6 @@ def transcribe():
 if __name__ == '__main__':
     print("\n🎙️  Faster Whisper Real-time Transcription Server")
     print("=" * 50)
-    print("Server starting on http://localhost:5000")
+    print("Server starting on http://localhost:10000")
     print("Open your browser and start speaking!\n")
-    app.run(debug=True, host='0.0.0.0', port=5000, use_reloader=False)
+    app.run(debug=True, host='0.0.0.0', port=10000, use_reloader=False)

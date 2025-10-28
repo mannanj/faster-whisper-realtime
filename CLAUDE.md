@@ -58,7 +58,7 @@ This script:
 - Creates Python virtual environment (if needed)
 - Installs/updates all dependencies
 - Launches Flask server in new terminal window
-- Opens browser automatically at http://localhost:5000
+- Opens browser automatically at http://localhost:10000
 
 ### Manual Commands (if not using run.sh)
 
@@ -72,7 +72,7 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Run Flask server (port 5000)
+# Run Flask server (port 10000)
 python3 server.py
 ```
 
@@ -120,11 +120,11 @@ Simple full-stack real-time speech transcription application with Flask backend 
 - **requests**: HTTP library (utility dependency)
 
 ### Development Notes
-- Server runs on port 5000 by default
+- Server runs on port 10000 by default
 - First run downloads Whisper model (~150MB for base model)
 - Model loaded at server startup, not per-request
 - Audio temporarily saved as .webm files during transcription
-- Frontend expects backend on localhost:5000 (same origin)
+- Frontend expects backend on localhost:10000 (same origin)
 - Browser must support MediaRecorder API (Chrome, Firefox, Safari, Edge)
 
 ## Code Standards
