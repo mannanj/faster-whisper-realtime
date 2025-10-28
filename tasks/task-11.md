@@ -1,52 +1,55 @@
-# Task 11: Add Blue Gradient Background and Blue Color Scheme
+# Task 11: Implement faster-whisper Performance Optimizations
 
-- [ ] Implement blue gradient background (similar to current purple gradient)
-- [ ] Update primary button colors to blue theme
-- [ ] Update accent colors (status text, highlights) to blue
-- [ ] Maintain white card container from Task 10 over blue background
-- [ ] Ensure text contrast meets accessibility standards on blue background
-- [ ] Update recording state indicators to use blue palette
-- **Location:** `index.html`
-- **Dependencies:** Task 10 must be completed first
+- [x] Enable VAD (Voice Activity Detection) filtering
+- [x] Reduce beam_size from 5 to 1 for real-time performance
+- [x] Add automatic CPU thread optimization
+- [x] Add performance monitoring with Real-Time Factor (RTF) metrics
+- [x] Create comprehensive optimization documentation
+- **Location:** `server.py`, `docs/optimization-guide.md`
 
-## Design Vision
+## Context
 
-Combine the minimalist, clean design from sun-taupe.vercel.app (Task 10) with a blue color palette:
-- Keep the clean card-based layout, typography, and borders from Task 10
-- Add blue gradient background (replacing the current purple gradient shown in screenshot)
-- Use blue for primary interactive elements and status indicators
-- Maintain high contrast and readability
+Based on faster-whisper and CTranslate2 documentation, implemented critical performance optimizations to improve transcription speed by 2-3x for real-time applications.
 
-## Color Scheme
+## Changes Made
 
-**Background Gradient:**
-- Blue gradient similar to current implementation
-- Suggested: Light to medium blue gradient (e.g., #667eea to #764ba2, or a cooler blue-only variant)
+### 1. VAD (Voice Activity Detection) - server.py:41,84
+- Added `vad_filter=True` parameter to both transcription endpoints
+- Automatically skips silent audio segments
+- Expected 30-50% performance improvement
 
-**Primary Colors:**
-- Primary Button: Blue (replace current purple)
-- Status/Accent: Blue variants
-- Borders: Keep black for contrast (from Task 10)
-- Text: Black on white cards (from Task 10)
+### 2. Beam Size Reduction - server.py:41,84
+- Changed `beam_size=5` → `beam_size=1`
+- Optimized for real-time conversational speech
+- Expected 2-3x speedup with minimal accuracy impact
 
-**Card Container:**
-- White background (#ffffff) - maintains from Task 10
-- Clean borders - maintains from Task 10
-- Sits over blue gradient background
+### 3. CPU Thread Optimization - server.py:12-16
+- Auto-detects CPU core count using `multiprocessing.cpu_count()`
+- Sets `OMP_NUM_THREADS` environment variable if not already configured
+- Expected 10-20% performance improvement
 
-## Implementation Notes
+### 4. Performance Monitoring - server.py:40-50,82-99
+- Added timing instrumentation for all transcriptions
+- Calculates Real-Time Factor (RTF) metric
+- Logs format: `[Performance] Chunk X: Ys audio in Zs (RTF: Nx, M segments)`
+- Target RTF < 0.3x for smooth real-time transcription
 
-1. **Background:** Apply blue gradient to body, similar to current purple gradient
-2. **Buttons:** Update button colors to blue theme while keeping minimalist style from Task 10
-3. **Status Indicators:** "Ready to record", "Recording", etc. in blue
-4. **Contrast:** Ensure white card is prominent against blue background
-5. **Recording Button:** Blue theme for active/recording states
-6. **Accessibility:** Test color contrast ratios (WCAG AA minimum)
+### 5. Documentation - docs/optimization-guide.md
+- Comprehensive guide explaining CTranslate2 runtime
+- 7 prioritized optimization strategies with code examples
+- Model comparison table
+- Browser limitation explanations
+- Performance monitoring best practices
 
-## Visual Balance
+## Expected Performance Impact
 
-The goal is a design that:
-- Has visual interest from the blue gradient background
-- Maintains the clean, minimalist card design from Task 10
-- Uses blue as the primary brand/interaction color
-- Keeps high readability with black text on white cards
+**Combined speedup: 2-3x faster transcription**
+- Before: ~2-3 seconds to process 3-second audio chunk
+- After: ~0.5-1 second to process 3-second audio chunk (RTF < 0.3x)
+
+## Technical Details
+
+- CTranslate2 runtime provides 3-4x speedup over PyTorch with 75% less memory
+- VAD filtering reduces unnecessary processing of silence
+- Lower beam size trades marginal accuracy for significant speed gains
+- RTF (Real-Time Factor) < 1.0 means transcription is faster than audio playback

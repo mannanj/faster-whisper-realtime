@@ -2,6 +2,7 @@
 import os
 import tempfile
 import json
+import time
 from flask import Flask, request, jsonify, send_from_directory, Response, stream_with_context
 from flask_cors import CORS
 from faster_whisper import WhisperModel
@@ -9,8 +10,12 @@ from faster_whisper import WhisperModel
 app = Flask(__name__, static_folder='.')
 CORS(app)
 
-# Initialize the model (using base model for balance of speed and accuracy)
-# Options: tiny, base, small, medium, large-v2, large-v3
+if 'OMP_NUM_THREADS' not in os.environ:
+    import multiprocessing
+    num_cores = multiprocessing.cpu_count()
+    os.environ['OMP_NUM_THREADS'] = str(num_cores)
+    print(f"Setting OMP_NUM_THREADS to {num_cores} (detected CPU cores)")
+
 print("Loading Whisper model...")
 model = WhisperModel("base", device="cpu", compute_type="int8")
 print("Model loaded successfully!")
@@ -32,12 +37,17 @@ def transcribe():
 
     def generate_segments():
         try:
-            segments, info = model.transcribe(temp_path, beam_size=5)
+            start_time = time.time()
+            segments, info = model.transcribe(temp_path, beam_size=1, vad_filter=True)
 
             yield f"data: {json.dumps({'type': 'metadata', 'language': info.language, 'duration': info.duration})}\n\n"
 
             for segment in segments:
                 yield f"data: {json.dumps({'type': 'segment', 'start': segment.start, 'end': segment.end, 'text': segment.text})}\n\n"
+
+            transcription_time = time.time() - start_time
+            rtf = transcription_time / info.duration if info.duration > 0 else 0
+            print(f"[Performance] Transcribed {info.duration:.2f}s audio in {transcription_time:.2f}s (RTF: {rtf:.2f}x)")
 
             yield f"data: {json.dumps({'type': 'complete'})}\n\n"
 
@@ -69,8 +79,9 @@ def transcribe_live():
 
     def generate_segments():
         try:
+            start_time = time.time()
             print(f"[Server] Starting transcription for chunk {chunk_index}...")
-            segments, info = model.transcribe(temp_path, beam_size=5)
+            segments, info = model.transcribe(temp_path, beam_size=1, vad_filter=True)
 
             if int(chunk_index) == 0:
                 print(f"[Server] Chunk {chunk_index} metadata: language={info.language}")
@@ -81,6 +92,11 @@ def transcribe_live():
                 segment_count += 1
                 print(f"[Server] Chunk {chunk_index} segment {segment_count}: '{segment.text}'")
                 yield f"data: {json.dumps({'type': 'segment', 'start': segment.start, 'end': segment.end, 'text': segment.text})}\n\n"
+
+            transcription_time = time.time() - start_time
+            audio_duration = info.duration if hasattr(info, 'duration') else 3.0
+            rtf = transcription_time / audio_duration if audio_duration > 0 else 0
+            print(f"[Performance] Chunk {chunk_index}: {audio_duration:.2f}s audio in {transcription_time:.2f}s (RTF: {rtf:.2f}x, {segment_count} segments)")
 
             print(f"[Server] Chunk {chunk_index} complete ({segment_count} segments)")
             yield f"data: {json.dumps({'type': 'chunk_complete', 'chunk_index': chunk_index})}\n\n"
