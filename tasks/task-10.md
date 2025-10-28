@@ -1,13 +1,13 @@
 # Task 10: Redesign UI to Match sun-taupe.vercel.app Design
 
-- [ ] Download and integrate Geist and Geist Mono fonts locally
-- [ ] Update HTML structure to match minimalist card-based layout
-- [ ] Implement clean typography with light font weights (300-400)
-- [ ] Apply clean white background with subtle borders
-- [ ] Style record button to match minimalist aesthetic
-- [ ] Update color scheme to neutral black/white palette
-- [ ] Add proper spacing and padding following reference design
-- [ ] Ensure monospace font for technical elements (duration, status)
+- [x] Download and integrate Geist and Geist Mono fonts locally
+- [x] Update HTML structure to match minimalist card-based layout
+- [x] Implement clean typography with light font weights (300-400)
+- [x] Apply clean white background with subtle borders
+- [x] Style record button to match minimalist aesthetic
+- [x] Update color scheme to neutral black/white palette
+- [x] Add proper spacing and padding following reference design
+- [x] Ensure monospace font for technical elements (duration, status)
 - **Location:** `index.html`, new directory `static/fonts/`
 
 ## Design Reference
