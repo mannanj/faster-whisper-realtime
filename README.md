@@ -23,6 +23,10 @@ Because speech-to-text shouldn't require a cloud API, a PhD, or patience. Just o
 git clone https://github.com/mannanj/faster-whisper-realtime.git
 cd faster-whisper-realtime
 
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
 # Install dependencies
 pip install -r requirements.txt
 
