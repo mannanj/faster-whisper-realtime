@@ -18,11 +18,19 @@ Because speech-to-text shouldn't require a cloud API, a PhD, or patience. Just o
 
 ## Quick Start
 
+**One command:**
+
 ```bash
-# Clone and enter
 git clone https://github.com/mannanj/faster-whisper-realtime.git
 cd faster-whisper-realtime
+./run.sh
+```
 
+The script handles venv setup, dependencies, server launch, and opens your browser automatically.
+
+**Manual setup:**
+
+```bash
 # Create and activate virtual environment
 python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
