@@ -271,6 +271,7 @@
         let audioContext = null;
         let analyser = null;
         let animationFrameId = null;
+        let accumulatedChunks = [];
 
         const orb = document.getElementById('orb');
         const transcription = document.getElementById('transcription');
@@ -345,20 +346,54 @@
         function startRecording() {
             if (!mediaStream) return;
 
-            mediaRecorder = new MediaRecorder(mediaStream);
             chunkCounter = 0;
-
             transcription.textContent = '';
             transcription.classList.remove('empty');
+            isRecording = true;
 
-            mediaRecorder.addEventListener('dataavailable', async (event) => {
-                if (event.data.size > 0 && isRecording && !isMuted) {
-                    await sendChunkForTranscription(event.data);
+            startNewRecordingSegment();
+        }
+
+        function startNewRecordingSegment() {
+            if (!isRecording || isMuted) return;
+
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+
+            mediaRecorder = new MediaRecorder(mediaStream);
+            accumulatedChunks = [];
+
+            console.log('[MediaRecorder] Starting new recording segment');
+
+            mediaRecorder.addEventListener('dataavailable', (event) => {
+                console.log(`[MediaRecorder] dataavailable event fired: size=${event.data.size} bytes, state=${mediaRecorder.state}`);
+
+                if (event.data.size > 0) {
+                    accumulatedChunks.push(event.data);
                 }
             });
 
-            mediaRecorder.start(2000);
-            isRecording = true;
+            mediaRecorder.addEventListener('stop', async () => {
+                console.log(`[MediaRecorder] stop event fired, accumulated ${accumulatedChunks.length} chunks`);
+
+                if (accumulatedChunks.length > 0 && isRecording && !isMuted) {
+                    const completeBlob = new Blob(accumulatedChunks, { type: 'audio/webm' });
+                    console.log(`[MediaRecorder] Created complete blob: size=${completeBlob.size} bytes`);
+                    await sendChunkForTranscription(completeBlob);
+
+                    setTimeout(startNewRecordingSegment, 0);
+                }
+            });
+
+            mediaRecorder.start();
+
+            setTimeout(() => {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    console.log('[MediaRecorder] Stopping after 3 seconds');
+                    mediaRecorder.stop();
+                }
+            }, 3000);
         }
 
         async function sendChunkForTranscription(audioBlob) {
@@ -370,11 +405,16 @@
             const currentChunkIndex = chunkCounter;
             chunkCounter++;
 
+            console.log(`[Chunk ${currentChunkIndex}] Sending chunk to server: size=${audioBlob.size} bytes`);
+
             try {
+                console.log(`[Chunk ${currentChunkIndex}] Fetch started`);
                 const response = await fetch('/transcribe-live', {
                     method: 'POST',
                     body: formData
                 });
+
+                console.log(`[Chunk ${currentChunkIndex}] Response received, starting to read stream`);
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
@@ -383,7 +423,10 @@
                 while (true) {
                     const { done, value } = await reader.read();
 
-                    if (done) break;
+                    if (done) {
+                        console.log(`[Chunk ${currentChunkIndex}] Stream complete`);
+                        break;
+                    }
 
                     buffer += decoder.decode(value, { stream: true });
                     const lines = buffer.split('\n\n');
@@ -392,31 +435,39 @@
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
                             const data = JSON.parse(line.slice(6));
+                            console.log(`[Chunk ${currentChunkIndex}] Received event:`, data);
 
                             if (data.type === 'metadata') {
                                 if (currentChunkIndex === 0) {
                                     updateMetadata(data.language, data.duration || 0);
                                 }
                             } else if (data.type === 'segment') {
+                                console.log(`[Chunk ${currentChunkIndex}] Appending text: "${data.text}"`);
                                 appendTranscription(data.text);
                             } else if (data.type === 'error') {
-                                console.error('Transcription error:', data.message);
+                                console.error(`[Chunk ${currentChunkIndex}] Transcription error:`, data.message);
                             }
                         }
                     }
                 }
 
             } catch (error) {
-                console.error('Error sending chunk for transcription:', error);
+                console.error(`[Chunk ${currentChunkIndex}] Error sending chunk:`, error);
             }
         }
 
         function appendTranscription(text) {
+            console.log(`[appendTranscription] Called with text: "${text}"`);
+            console.log(`[appendTranscription] Current content: "${transcription.textContent}"`);
+            console.log(`[appendTranscription] Has 'empty' class: ${transcription.classList.contains('empty')}`);
+
             if (transcription.classList.contains('empty')) {
                 transcription.classList.remove('empty');
                 transcription.textContent = '';
             }
             transcription.textContent += ' ' + text;
+
+            console.log(`[appendTranscription] New content: "${transcription.textContent}"`);
             transcription.scrollTop = transcription.scrollHeight;
         }
 
@@ -446,7 +497,8 @@
                 statusMessage.textContent = 'Muted';
                 statusMessage.style.color = 'rgba(245, 87, 108, 0.9)';
             } else {
-                startRecording();
+                isRecording = true;
+                startNewRecordingSegment();
                 updateOrbState('active');
                 statusMessage.textContent = '';
                 statusMessage.style.color = 'rgba(255, 255, 255, 0.7)';

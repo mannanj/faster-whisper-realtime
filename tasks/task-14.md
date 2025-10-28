@@ -1,12 +1,12 @@
 # Task 14: Fix Continuous Streaming Transcription Bug
 
-- [ ] Debug why only first word appears in transcription
-- [ ] Investigate if subsequent chunks are being sent to server
-- [ ] Check if server is processing all chunks correctly
-- [ ] Verify text appending logic doesn't replace previous content
-- [ ] Add logging to track chunk processing pipeline
-- [ ] Test with longer continuous speech (10+ seconds)
-- [ ] Ensure chunks don't overlap/duplicate transcription
+- [x] Debug why only first word appears in transcription
+- [x] Investigate if subsequent chunks are being sent to server
+- [x] Check if server is processing all chunks correctly
+- [x] Verify text appending logic doesn't replace previous content
+- [x] Add logging to track chunk processing pipeline
+- [x] Test with longer continuous speech (10+ seconds)
+- [x] Ensure chunks don't overlap/duplicate transcription
 - **Location:** `index.html`, `server.py`
 
 ## Problem Description

@@ -59,28 +59,40 @@ def transcribe_live():
     chunk_index = request.form.get('chunk_index', 0)
     session_id = request.form.get('session_id', 'default')
 
+    print(f"\n[Server] Received chunk {chunk_index} for session {session_id}")
+
     with tempfile.NamedTemporaryFile(delete=False, suffix='.webm') as temp_audio:
         audio_chunk.save(temp_audio.name)
+        chunk_size = os.path.getsize(temp_audio.name)
         temp_path = temp_audio.name
+        print(f"[Server] Chunk {chunk_index} size: {chunk_size} bytes, saved to {temp_path}")
 
     def generate_segments():
         try:
+            print(f"[Server] Starting transcription for chunk {chunk_index}...")
             segments, info = model.transcribe(temp_path, beam_size=5)
 
             if int(chunk_index) == 0:
+                print(f"[Server] Chunk {chunk_index} metadata: language={info.language}")
                 yield f"data: {json.dumps({'type': 'metadata', 'language': info.language})}\n\n"
 
+            segment_count = 0
             for segment in segments:
+                segment_count += 1
+                print(f"[Server] Chunk {chunk_index} segment {segment_count}: '{segment.text}'")
                 yield f"data: {json.dumps({'type': 'segment', 'start': segment.start, 'end': segment.end, 'text': segment.text})}\n\n"
 
+            print(f"[Server] Chunk {chunk_index} complete ({segment_count} segments)")
             yield f"data: {json.dumps({'type': 'chunk_complete', 'chunk_index': chunk_index})}\n\n"
 
         except Exception as e:
+            print(f"[Server] Error transcribing chunk {chunk_index}: {e}")
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
 
         finally:
             if os.path.exists(temp_path):
                 os.remove(temp_path)
+                print(f"[Server] Cleaned up temp file for chunk {chunk_index}")
 
     return Response(stream_with_context(generate_segments()), mimetype='text/event-stream')
 
