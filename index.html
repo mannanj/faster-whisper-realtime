@@ -23,12 +23,12 @@
         }
 
         .app-container {
-            max-width: 900px;
+            max-width: 800px;
             width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 30px;
+            gap: 20px;
         }
 
         .orb-container {
@@ -36,6 +36,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
         }
 
         .orb {
@@ -227,7 +236,7 @@
             <button onclick="requestMicrophonePermission()">Enable Microphone</button>
         </div>
 
-        <div id="mainApp" style="display: none; width: 100%;">
+        <div id="mainApp" style="display: none; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px;">
             <div class="orb-container">
                 <div class="orb" id="orb" data-state="active" tabindex="0" role="button" aria-label="Microphone active, click to mute">
                     <div class="waveform-container" id="waveformContainer">
@@ -249,9 +258,10 @@
                 </div>
             </div>
 
-            <div class="metadata" id="metadata">Language: -- • 0.00s</div>
-
-            <div class="status-message" id="statusMessage"></div>
+            <div class="info-row">
+                <div class="metadata" id="metadata">Language: -- • 0.00s</div>
+                <div class="status-message" id="statusMessage"></div>
+            </div>
 
             <div class="transcription empty" id="transcription">
                 Speak to start transcribing...
