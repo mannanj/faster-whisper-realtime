@@ -21,7 +21,7 @@ Because speech-to-text shouldn't require a cloud API, a PhD, or patience. Just o
 ```bash
 git clone https://github.com/mannanj/faster-whisper-realtime.git
 cd faster-whisper-realtime
-./run.sh
+./run.sh start
 ```
 
 The script handles venv setup, dependencies, server launch, and opens your browser automatically.
