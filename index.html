@@ -31,6 +31,18 @@
             gap: 20px;
         }
 
+        .main-card {
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
         .orb-container {
             position: relative;
             display: flex;
@@ -51,7 +63,7 @@
             width: 250px;
             height: 250px;
             border-radius: 50%;
-            background: white;
+            background: #e0e0e0;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -61,14 +73,18 @@
             overflow: hidden;
         }
 
+        .orb[data-state="inactive"] {
+            background: #e0e0e0;
+        }
+
         .orb[data-state="active"] {
+            background: #4ade80;
             box-shadow: 0 0 20px 10px rgba(74, 222, 128, 0.3);
             animation: pulse-glow 2s ease-in-out infinite;
         }
 
         .orb[data-state="muted"] {
-            filter: grayscale(100%);
-            opacity: 0.5;
+            background: #f5576c;
             box-shadow: 0 0 20px 10px rgba(245, 87, 108, 0.3);
             animation: pulse-glow-red 2s ease-in-out infinite;
         }
@@ -132,21 +148,21 @@
 
         .metadata {
             text-align: center;
-            color: rgba(255, 255, 255, 0.9);
+            color: #333;
             font-size: 0.95em;
             font-weight: 500;
         }
 
         .status-message {
             text-align: center;
-            color: rgba(255, 255, 255, 0.7);
+            color: #666;
             font-size: 0.9em;
             min-height: 20px;
         }
 
         .transcription {
-            background: white;
-            border-radius: 20px;
+            background: #1a1a1a;
+            border-radius: 12px;
             padding: 30px;
             min-height: 300px;
             max-height: 500px;
@@ -154,12 +170,12 @@
             width: 100%;
             font-size: 1.1em;
             line-height: 1.8;
-            color: #333;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            color: white;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
         }
 
         .transcription.empty {
-            color: #adb5bd;
+            color: #666;
             font-style: italic;
             display: flex;
             align-items: center;
@@ -230,15 +246,9 @@
 </head>
 <body>
     <div class="app-container" id="appContainer">
-        <div class="permission-prompt" id="permissionPrompt">
-            <h2>🎙️ Real-time Transcription</h2>
-            <p>This app transcribes your voice in real-time. Click below to grant microphone access and start.</p>
-            <button onclick="requestMicrophonePermission()">Enable Microphone</button>
-        </div>
-
-        <div id="mainApp" style="display: none; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+        <div id="mainApp" class="main-card">
             <div class="orb-container">
-                <div class="orb" id="orb" data-state="active" tabindex="0" role="button" aria-label="Microphone active, click to mute">
+                <div class="orb" id="orb" data-state="inactive" tabindex="0" role="button" aria-label="Click to start recording">
                     <div class="waveform-container" id="waveformContainer">
                         <div class="waveform-bar"></div>
                         <div class="waveform-bar"></div>
@@ -282,14 +292,13 @@
         let analyser = null;
         let animationFrameId = null;
         let accumulatedChunks = [];
+        let isInitialized = false;
 
         const orb = document.getElementById('orb');
         const transcription = document.getElementById('transcription');
         const metadata = document.getElementById('metadata');
         const statusMessage = document.getElementById('statusMessage');
         const waveformBars = document.querySelectorAll('.waveform-bar');
-        const permissionPrompt = document.getElementById('permissionPrompt');
-        const mainApp = document.getElementById('mainApp');
         const errorMessage = document.getElementById('errorMessage');
 
         const VOICE_THRESHOLD = 10;
@@ -297,9 +306,8 @@
         async function requestMicrophonePermission() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                permissionPrompt.style.display = 'none';
-                mainApp.style.display = 'flex';
                 await initializeApp(stream);
+                isInitialized = true;
             } catch (error) {
                 console.error('Microphone permission denied:', error);
                 showError('Microphone access denied. Please grant permission to use this app.');
@@ -495,7 +503,12 @@
             }
         }
 
-        function toggleMute() {
+        async function toggleMute() {
+            if (!isInitialized) {
+                await requestMicrophonePermission();
+                return;
+            }
+
             isMuted = !isMuted;
 
             if (isMuted) {
@@ -505,13 +518,13 @@
                 isRecording = false;
                 updateOrbState('muted');
                 statusMessage.textContent = 'Muted';
-                statusMessage.style.color = 'rgba(245, 87, 108, 0.9)';
+                statusMessage.style.color = '#f5576c';
             } else {
                 isRecording = true;
                 startNewRecordingSegment();
                 updateOrbState('active');
                 statusMessage.textContent = '';
-                statusMessage.style.color = 'rgba(255, 255, 255, 0.7)';
+                statusMessage.style.color = '#666';
             }
         }
 
