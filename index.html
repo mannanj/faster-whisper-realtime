@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Transcription</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        button.recording {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .status {
+            padding: 12px 20px;
+            background: #f0f4ff;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #667eea;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .status.recording {
+            background: #fff0f0;
+            color: #f5576c;
+        }
+
+        .transcription-box {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 25px;
+            min-height: 200px;
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #333;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .transcription-box.empty {
+            color: #adb5bd;
+            font-style: italic;
+        }
+
+        .metadata {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.9em;
+            color: #666;
+            display: none;
+        }
+
+        .metadata.show {
+            display: block;
+        }
+
+        .metadata span {
+            margin-right: 15px;
+        }
+
+        .processing {
+            text-align: center;
+            color: #667eea;
+            font-weight: 500;
+            margin-top: 15px;
+        }
+
+        .processing::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎙️ Real-time Transcription</h1>
+        <p class="subtitle">Powered by Faster Whisper</p>
+
+        <div class="controls">
+            <button id="startBtn">Start Recording</button>
+            <button id="stopBtn" disabled>Stop Recording</button>
+            <button id="clearBtn">Clear</button>
+        </div>
+
+        <div id="status" class="status">Ready to record</div>
+
+        <div id="transcription" class="transcription-box empty">
+            Your transcription will appear here...
+        </div>
+
+        <div id="metadata" class="metadata"></div>
+
+        <div id="processing" class="processing" style="display: none;">Processing audio</div>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const status = document.getElementById('status');
+        const transcription = document.getElementById('transcription');
+        const metadata = document.getElementById('metadata');
+        const processing = document.getElementById('processing');
+
+        startBtn.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.addEventListener('dataavailable', event => {
+                    audioChunks.push(event.data);
+                });
+
+                mediaRecorder.addEventListener('stop', async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    await transcribeAudio(audioBlob);
+
+                    // Stop all tracks
+                    stream.getTracks().forEach(track => track.stop());
+                });
+
+                mediaRecorder.start();
+                isRecording = true;
+
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                startBtn.classList.remove('recording');
+                stopBtn.classList.add('recording');
+                status.textContent = '🔴 Recording...';
+                status.classList.add('recording');
+
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                status.textContent = 'Error: Could not access microphone';
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                stopBtn.classList.remove('recording');
+                status.textContent = 'Processing...';
+                status.classList.remove('recording');
+            }
+        });
+
+        clearBtn.addEventListener('click', () => {
+            transcription.textContent = 'Your transcription will appear here...';
+            transcription.classList.add('empty');
+            metadata.classList.remove('show');
+            metadata.innerHTML = '';
+            status.textContent = 'Ready to record';
+        });
+
+        async function transcribeAudio(audioBlob) {
+            processing.style.display = 'block';
+
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'recording.webm');
+
+            try {
+                const response = await fetch('/transcribe', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    transcription.textContent = `Error: ${result.error}`;
+                    transcription.classList.add('empty');
+                } else {
+                    transcription.textContent = result.transcription || 'No speech detected';
+                    transcription.classList.remove('empty');
+
+                    // Show metadata
+                    metadata.innerHTML = `
+                        <span>📝 Language: ${result.language}</span>
+                        <span>⏱️ Duration: ${result.duration.toFixed(2)}s</span>
+                    `;
+                    metadata.classList.add('show');
+                }
+
+                status.textContent = 'Ready to record';
+
+            } catch (error) {
+                console.error('Error transcribing audio:', error);
+                transcription.textContent = `Error: ${error.message}`;
+                transcription.classList.add('empty');
+                status.textContent = 'Error occurred';
+            } finally {
+                processing.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
