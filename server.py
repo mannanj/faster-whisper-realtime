@@ -50,6 +50,40 @@ def transcribe():
 
     return Response(stream_with_context(generate_segments()), mimetype='text/event-stream')
 
+@app.route('/transcribe-live', methods=['POST'])
+def transcribe_live():
+    if 'audio' not in request.files:
+        return jsonify({'error': 'No audio chunk provided'}), 400
+
+    audio_chunk = request.files['audio']
+    chunk_index = request.form.get('chunk_index', 0)
+    session_id = request.form.get('session_id', 'default')
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.webm') as temp_audio:
+        audio_chunk.save(temp_audio.name)
+        temp_path = temp_audio.name
+
+    def generate_segments():
+        try:
+            segments, info = model.transcribe(temp_path, beam_size=5)
+
+            if int(chunk_index) == 0:
+                yield f"data: {json.dumps({'type': 'metadata', 'language': info.language})}\n\n"
+
+            for segment in segments:
+                yield f"data: {json.dumps({'type': 'segment', 'start': segment.start, 'end': segment.end, 'text': segment.text})}\n\n"
+
+            yield f"data: {json.dumps({'type': 'chunk_complete', 'chunk_index': chunk_index})}\n\n"
+
+        except Exception as e:
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+    return Response(stream_with_context(generate_segments()), mimetype='text/event-stream')
+
 if __name__ == '__main__':
     print("\n🎙️  Faster Whisper Real-time Transcription Server")
     print("=" * 50)

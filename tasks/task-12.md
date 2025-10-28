@@ -1,13 +1,13 @@
 # Task 12: Continuous Real-Time Streaming Transcription
 
-- [ ] Modify MediaRecorder to use timeslice for continuous chunk generation
-- [ ] Send audio chunks to server while recording (not after stop)
-- [ ] Create new `/transcribe-live` endpoint for streaming audio input
-- [ ] Implement WebSocket or chunked POST for bidirectional streaming
-- [ ] Display transcription text as it arrives during active recording
-- [ ] Handle overlapping/continuous audio context between chunks
-- [ ] Add visual indicator showing live transcription status
-- [ ] Implement proper cleanup when recording stops
+- [x] Modify MediaRecorder to use timeslice for continuous chunk generation
+- [x] Send audio chunks to server while recording (not after stop)
+- [x] Create new `/transcribe-live` endpoint for streaming audio input
+- [x] Implement WebSocket or chunked POST for bidirectional streaming
+- [x] Display transcription text as it arrives during active recording
+- [x] Handle overlapping/continuous audio context between chunks
+- [x] Add visual indicator showing live transcription status
+- [x] Implement proper cleanup when recording stops
 - **Location:** `server.py`, `index.html`
 
 ## Purpose

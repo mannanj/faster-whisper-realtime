@@ -17,6 +17,7 @@
 - [ ] Create configuration file for custom commands
 - [ ] Add terminal window management (new windows per command)
 - [ ] Test all command types (voice, text, scheduled, notes)
+- [ ] support multi commands: "would you open my whisper code base in vscode and start it in the web, telling me which tasks are left remaining to work"
 - **Location:** New files in project root, integration with `server.py`
 
 ## Vision
