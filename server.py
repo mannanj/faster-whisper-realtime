@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import os
 import tempfile
-from flask import Flask, request, jsonify, send_from_directory
+import json
+from flask import Flask, request, jsonify, send_from_directory, Response, stream_with_context
 from flask_cors import CORS
 from faster_whisper import WhisperModel
 
@@ -20,37 +21,34 @@ def index():
 
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
-    """Transcribe audio file sent from the client."""
     if 'audio' not in request.files:
         return jsonify({'error': 'No audio file provided'}), 400
 
     audio_file = request.files['audio']
 
-    # Save to temporary file
     with tempfile.NamedTemporaryFile(delete=False, suffix='.webm') as temp_audio:
         audio_file.save(temp_audio.name)
         temp_path = temp_audio.name
 
-    try:
-        # Transcribe the audio
-        segments, info = model.transcribe(temp_path, beam_size=5)
+    def generate_segments():
+        try:
+            segments, info = model.transcribe(temp_path, beam_size=5)
 
-        # Collect all segments
-        transcription = " ".join([segment.text for segment in segments])
+            yield f"data: {json.dumps({'type': 'metadata', 'language': info.language, 'duration': info.duration})}\n\n"
 
-        return jsonify({
-            'transcription': transcription.strip(),
-            'language': info.language,
-            'duration': info.duration
-        })
+            for segment in segments:
+                yield f"data: {json.dumps({'type': 'segment', 'start': segment.start, 'end': segment.end, 'text': segment.text})}\n\n"
 
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+            yield f"data: {json.dumps({'type': 'complete'})}\n\n"
 
-    finally:
-        # Clean up temporary file
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
+        except Exception as e:
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+    return Response(stream_with_context(generate_segments()), mimetype='text/event-stream')
 
 if __name__ == '__main__':
     print("\n🎙️  Faster Whisper Real-time Transcription Server")
