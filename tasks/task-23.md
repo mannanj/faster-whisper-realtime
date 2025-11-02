@@ -1,16 +1,16 @@
 # Task 23: Frontend - File Upload Tab with Segmented Playback
 
-- [ ] Add tab navigation UI (Real-time / File Upload tabs)
-- [ ] Create file upload interface with drag-and-drop support
-- [ ] Implement SSE event listener for real-time progress updates
-- [ ] Display progress bar with percentage and estimated time remaining
-- [ ] Build segmented view displaying 5-minute chunks as they complete
-- [ ] Add audio player for each segment (HTML5 audio element)
-- [ ] Display transcription text alongside each audio segment
-- [ ] Add download buttons for full transcription (TXT and JSON formats)
-- [ ] Add copy functionality for individual segments and full transcript
-- [ ] Handle connection interruptions with status endpoint fallback
-- [ ] Match existing design system (colors, fonts, borders)
+- [x] Add tab navigation UI (Real-time / File Upload tabs)
+- [x] Create file upload interface with drag-and-drop support
+- [x] Implement SSE event listener for real-time progress updates
+- [x] Display progress bar with percentage and estimated time remaining
+- [x] Build segmented view displaying 5-minute chunks as they complete
+- [x] Add audio player for each segment (HTML5 audio element)
+- [x] Display transcription text alongside each audio segment
+- [x] Add download buttons for full transcription (TXT and JSON formats)
+- [x] Add copy functionality for individual segments and full transcript
+- [x] Handle connection interruptions with status endpoint fallback
+- [x] Match existing design system (colors, fonts, borders)
 - **Location:** `index.html` (or new `upload.html` if separate)
 
 ## Context

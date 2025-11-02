@@ -41,7 +41,44 @@
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 0;
+            gap: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px 30px;
+            background: #ffffff;
+            border: 1px solid #000000;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 400;
+            text-align: center;
+            transition: all 0.2s ease;
+            color: #666666;
+        }
+
+        .tab.active {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .tab:hover:not(.active) {
+            background: #f5f5f5;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         .main-card {
@@ -297,6 +334,205 @@
             font-weight: 300;
         }
 
+        .upload-zone {
+            border: 2px dashed #000000;
+            border-radius: 12px;
+            padding: 60px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #ffffff;
+        }
+
+        .upload-zone:hover {
+            background: #f5f5f5;
+            border-color: #666666;
+        }
+
+        .upload-zone.dragover {
+            background: #f5f5f5;
+            border-color: #000000;
+            border-style: solid;
+        }
+
+        .upload-zone p {
+            color: #666666;
+            font-size: 16px;
+            font-weight: 300;
+            margin-bottom: 10px;
+        }
+
+        .upload-zone input[type="file"] {
+            display: none;
+        }
+
+        .progress-container {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .progress-container.active {
+            display: block;
+        }
+
+        .progress-bar-wrapper {
+            background: #ffffff;
+            border: 1px solid #000000;
+            border-radius: 8px;
+            height: 40px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #4ade80 0%, #22d3ee 40%, #a78bfa 70%, #f472b6 100%);
+            height: 100%;
+            transition: width 0.3s ease;
+            width: 0;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            font-weight: 500;
+            color: #000000;
+            font-family: 'Geist Mono', monospace;
+        }
+
+        .progress-info {
+            margin-top: 10px;
+            text-align: center;
+            color: #666666;
+            font-size: 14px;
+            font-family: 'Geist Mono', monospace;
+        }
+
+        .segments-container {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .segments-container.active {
+            display: block;
+        }
+
+        .segment {
+            background: #ffffff;
+            border: 1px solid #000000;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .segment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .segment-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #000000;
+            font-family: 'Geist Mono', monospace;
+        }
+
+        .segment-copy {
+            background: transparent;
+            border: 1px solid #000000;
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 400;
+            transition: all 0.2s ease;
+            color: #000000;
+        }
+
+        .segment-copy:hover {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .segment-copy.copied {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .segment-audio {
+            width: 100%;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+
+        .segment-text {
+            color: #000000;
+            font-size: 16px;
+            line-height: 1.8;
+            font-weight: 300;
+            margin-bottom: 0;
+        }
+
+        .segment-text.empty {
+            color: #999999;
+            font-style: italic;
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .download-button {
+            background: #ffffff;
+            border: 1px solid #000000;
+            border-radius: 8px;
+            padding: 12px 30px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 400;
+            transition: all 0.2s ease;
+            color: #000000;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .download-button:hover {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .copy-all-button {
+            background: #000000;
+            color: #ffffff;
+            border: 1px solid #000000;
+            border-radius: 8px;
+            padding: 15px 40px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 400;
+            transition: all 0.2s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .copy-all-button:hover {
+            background: #ffffff;
+            color: #000000;
+        }
+
+        .copy-all-button.copied {
+            background: #4ade80;
+            border-color: #4ade80;
+            color: #000000;
+        }
+
         @media (max-width: 600px) {
             .main-card {
                 padding: 40px 30px;
@@ -320,7 +556,13 @@
 </head>
 <body>
     <div class="app-container" id="appContainer">
-        <div id="mainApp" class="main-card">
+        <div class="tabs">
+            <div class="tab active" id="realtimeTab">Real-time</div>
+            <div class="tab" id="uploadTab">File Upload</div>
+        </div>
+
+        <div id="realtimeContent" class="tab-content active">
+            <div id="mainApp" class="main-card">
             <div class="orb-container">
                 <div class="orb" id="orb" data-state="inactive" tabindex="0" role="button" aria-label="Click to start recording">
                     <div class="waveform-container" id="waveformContainer">
@@ -372,6 +614,37 @@
         </div>
 
         <div id="errorMessage" class="error-message" style="display: none;"></div>
+        </div>
+        </div>
+
+        <div id="uploadContent" class="tab-content">
+            <div class="main-card">
+                <div class="upload-zone" id="uploadZone">
+                    <input type="file" id="fileInput" accept="audio/*,video/*" />
+                    <p>Drop audio file here or click to upload</p>
+                    <p style="font-size: 14px; color: #999;">Supports all audio formats (MP3, WAV, M4A, etc.)</p>
+                </div>
+
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar-wrapper">
+                        <div class="progress-bar" id="progressBar"></div>
+                        <div class="progress-text" id="progressText">0%</div>
+                    </div>
+                    <div class="progress-info" id="progressInfo">Preparing...</div>
+                </div>
+
+                <div class="segments-container" id="segmentsContainer">
+                    <div id="segmentsList"></div>
+
+                    <div class="download-buttons" id="downloadButtons" style="display: none;">
+                        <a class="download-button" id="downloadTxt" download>Download TXT</a>
+                        <a class="download-button" id="downloadJson" download>Download JSON</a>
+                    </div>
+
+                    <button class="copy-all-button" id="copyAllButton" style="display: none;">Copy All Transcriptions</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -678,6 +951,290 @@
                 cancelAnimationFrame(animationFrameId);
             }
         });
+
+        // File Upload Tab Functionality
+        const realtimeTab = document.getElementById('realtimeTab');
+        const uploadTab = document.getElementById('uploadTab');
+        const realtimeContent = document.getElementById('realtimeContent');
+        const uploadContent = document.getElementById('uploadContent');
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const progressInfo = document.getElementById('progressInfo');
+        const segmentsContainer = document.getElementById('segmentsContainer');
+        const segmentsList = document.getElementById('segmentsList');
+        const downloadButtons = document.getElementById('downloadButtons');
+        const downloadTxt = document.getElementById('downloadTxt');
+        const downloadJson = document.getElementById('downloadJson');
+        const copyAllButton = document.getElementById('copyAllButton');
+
+        let currentSessionId = null;
+        let allSegments = [];
+        let statusCheckInterval = null;
+
+        realtimeTab.addEventListener('click', () => {
+            realtimeTab.classList.add('active');
+            uploadTab.classList.remove('active');
+            realtimeContent.classList.add('active');
+            uploadContent.classList.remove('active');
+        });
+
+        uploadTab.addEventListener('click', () => {
+            uploadTab.classList.add('active');
+            realtimeTab.classList.remove('active');
+            uploadContent.classList.add('active');
+            realtimeContent.classList.remove('active');
+        });
+
+        uploadZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+
+            if (e.dataTransfer.files.length > 0) {
+                handleFileUpload(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+
+        async function handleFileUpload(file) {
+            uploadZone.style.display = 'none';
+            progressContainer.classList.add('active');
+            segmentsContainer.classList.remove('active');
+            segmentsList.innerHTML = '';
+            allSegments = [];
+            downloadButtons.style.display = 'none';
+            copyAllButton.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('audio', file);
+
+            try {
+                const response = await fetch('/transcribe-file', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop();
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = JSON.parse(line.slice(6));
+                            handleSSEEvent(data);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                progressInfo.textContent = 'Error: ' + error.message;
+                progressInfo.style.color = '#ff0000';
+
+                setTimeout(() => {
+                    resetUploadUI();
+                }, 3000);
+            }
+        }
+
+        function handleSSEEvent(data) {
+            console.log('SSE Event:', data);
+
+            switch (data.type) {
+                case 'started':
+                    currentSessionId = data.session_id;
+                    progressInfo.textContent = `Processing ${data.total_segments} segments...`;
+                    segmentsContainer.classList.add('active');
+                    startStatusFallback();
+                    break;
+
+                case 'progress':
+                    updateProgress(data.percent, data.estimated_remaining);
+                    break;
+
+                case 'segment_complete':
+                    addSegment(data);
+                    break;
+
+                case 'complete':
+                    completeUpload(data);
+                    break;
+
+                case 'error':
+                    progressInfo.textContent = 'Error: ' + data.message;
+                    progressInfo.style.color = '#ff0000';
+                    stopStatusFallback();
+                    break;
+            }
+        }
+
+        function updateProgress(percent, estimatedRemaining) {
+            progressBar.style.width = percent + '%';
+            progressText.textContent = Math.round(percent) + '%';
+
+            if (estimatedRemaining !== undefined && estimatedRemaining > 0) {
+                const minutes = Math.floor(estimatedRemaining / 60);
+                const seconds = Math.round(estimatedRemaining % 60);
+                progressInfo.textContent = `${minutes}m ${seconds}s remaining`;
+            } else {
+                progressInfo.textContent = 'Processing...';
+            }
+        }
+
+        function addSegment(data) {
+            const segment = {
+                index: data.segment,
+                transcription: data.transcription,
+                start_time: data.start_time,
+                end_time: data.end_time
+            };
+            allSegments.push(segment);
+
+            const segmentDiv = document.createElement('div');
+            segmentDiv.className = 'segment';
+            segmentDiv.id = `segment-${data.segment}`;
+
+            const startMin = Math.floor(data.start_time / 60);
+            const startSec = Math.floor(data.start_time % 60);
+            const endMin = Math.floor(data.end_time / 60);
+            const endSec = Math.floor(data.end_time % 60);
+            const timeRange = `${startMin}:${startSec.toString().padStart(2, '0')} - ${endMin}:${endSec.toString().padStart(2, '0')}`;
+
+            segmentDiv.innerHTML = `
+                <div class="segment-header">
+                    <div class="segment-title">Segment ${data.segment + 1} (${timeRange})</div>
+                    <button class="segment-copy" data-segment="${data.segment}">Copy</button>
+                </div>
+                <audio class="segment-audio" controls>
+                    <source src="/audio-segment/${currentSessionId}/${data.segment}" type="audio/mpeg">
+                </audio>
+                <p class="segment-text">${data.transcription || '<span class="empty">Processing...</span>'}</p>
+            `;
+
+            segmentsList.appendChild(segmentDiv);
+
+            const copyBtn = segmentDiv.querySelector('.segment-copy');
+            copyBtn.addEventListener('click', () => copySegment(data.segment, copyBtn));
+        }
+
+        function completeUpload(data) {
+            progressBar.style.width = '100%';
+            progressText.textContent = '100%';
+            progressInfo.textContent = 'Complete!';
+            progressInfo.style.color = '#4ade80';
+
+            downloadTxt.href = `/download-transcription/${currentSessionId}`;
+            downloadJson.href = `/download-transcription/${currentSessionId}/json`;
+            downloadButtons.style.display = 'flex';
+            copyAllButton.style.display = 'block';
+
+            stopStatusFallback();
+
+            setTimeout(() => {
+                progressContainer.classList.remove('active');
+            }, 2000);
+        }
+
+        async function copySegment(index, button) {
+            const segment = allSegments.find(s => s.index === index);
+            if (!segment || !segment.transcription) return;
+
+            try {
+                await navigator.clipboard.writeText(segment.transcription);
+                button.classList.add('copied');
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    button.textContent = 'Copy';
+                }, 2000);
+            } catch (error) {
+                console.error('Failed to copy:', error);
+            }
+        }
+
+        copyAllButton.addEventListener('click', async () => {
+            const allText = allSegments
+                .sort((a, b) => a.index - b.index)
+                .map(s => s.transcription)
+                .join('\n\n');
+
+            try {
+                await navigator.clipboard.writeText(allText);
+                copyAllButton.classList.add('copied');
+                copyAllButton.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyAllButton.classList.remove('copied');
+                    copyAllButton.textContent = 'Copy All Transcriptions';
+                }, 2000);
+            } catch (error) {
+                console.error('Failed to copy all:', error);
+            }
+        });
+
+        function startStatusFallback() {
+            stopStatusFallback();
+
+            statusCheckInterval = setInterval(async () => {
+                if (!currentSessionId) return;
+
+                try {
+                    const response = await fetch(`/transcribe-status/${currentSessionId}`);
+                    const status = await response.json();
+
+                    if (status.percent_complete !== undefined) {
+                        updateProgress(status.percent_complete, status.estimated_remaining);
+                    }
+                } catch (error) {
+                    console.error('Status check error:', error);
+                }
+            }, 5000);
+        }
+
+        function stopStatusFallback() {
+            if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+                statusCheckInterval = null;
+            }
+        }
+
+        function resetUploadUI() {
+            uploadZone.style.display = 'block';
+            progressContainer.classList.remove('active');
+            segmentsContainer.classList.remove('active');
+            progressBar.style.width = '0';
+            progressText.textContent = '0%';
+            progressInfo.textContent = 'Preparing...';
+            progressInfo.style.color = '#666666';
+            fileInput.value = '';
+        }
     </script>
 </body>
 </html>
