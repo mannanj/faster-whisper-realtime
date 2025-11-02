@@ -2,3 +2,5 @@ faster-whisper
 flask
 flask-cors
 requests
+anthropic
+python-dotenv

@@ -10,3 +10,4 @@ ENV/
 .DS_Store
 models/
 data/
+.env.local
