@@ -239,6 +239,7 @@
             color: #000000;
             font-family: 'Geist', system-ui, sans-serif;
             font-weight: 300;
+            white-space: pre-wrap;
         }
 
         .transcription.empty {
@@ -480,6 +481,7 @@
             line-height: 1.8;
             font-weight: 300;
             margin-bottom: 0;
+            white-space: pre-wrap;
         }
 
         .segment-text.empty {
@@ -1566,18 +1568,63 @@
             return card;
         }
 
+        function findNewlinePositions(wordTexts, correctedText) {
+            const positions = {};
+            let textPos = 0;
+
+            for (let i = 0; i < wordTexts.length; i++) {
+                const word = wordTexts[i];
+                const wordIndex = correctedText.indexOf(word, textPos);
+
+                if (wordIndex === -1) {
+                    textPos += word.length + 1;
+                    continue;
+                }
+
+                textPos = wordIndex + word.length;
+
+                let newlineCount = 0;
+                let searchPos = textPos;
+
+                while (searchPos < correctedText.length) {
+                    if (correctedText[searchPos] === '\n') {
+                        newlineCount++;
+                        searchPos++;
+                    } else if (correctedText[searchPos] === ' ' || correctedText[searchPos] === '\t') {
+                        searchPos++;
+                    } else {
+                        break;
+                    }
+                }
+
+                if (newlineCount > 0) {
+                    positions[i] = newlineCount;
+                }
+
+                textPos = searchPos;
+            }
+
+            return positions;
+        }
+
         function renderClickableTranscription(segment, audioElement) {
-            if (!segment.words || segment.words.length === 0) {
+            const words = segment.words_corrected || segment.words;
+            const text = segment.transcription_corrected || segment.transcription;
+
+            if (!words || words.length === 0) {
                 const p = document.createElement('p');
                 p.className = 'segment-text';
-                p.textContent = segment.corrected_transcription || segment.transcription || '';
+                p.textContent = text || '';
                 return p;
             }
 
             const container = document.createElement('p');
             container.className = 'segment-text';
 
-            segment.words.forEach((wordData, index) => {
+            const wordTexts = words.map(w => w.word);
+            const newlinePositions = findNewlinePositions(wordTexts, text);
+
+            words.forEach((wordData, index) => {
                 const wordSpan = document.createElement('span');
                 wordSpan.className = 'word';
                 wordSpan.textContent = wordData.word;
@@ -1598,7 +1645,12 @@
 
                 container.appendChild(wordSpan);
 
-                if (index < segment.words.length - 1) {
+                if (newlinePositions[index]) {
+                    const newlineCount = newlinePositions[index];
+                    for (let i = 0; i < newlineCount; i++) {
+                        container.appendChild(document.createElement('br'));
+                    }
+                } else if (index < words.length - 1) {
                     container.appendChild(document.createTextNode(' '));
                 }
             });
@@ -1630,10 +1682,12 @@
                         const endSec = Math.floor(segment.end_time % 60);
                         const timeRange = `${startMin}:${startSec.toString().padStart(2, '0')} - ${endMin}:${endSec.toString().padStart(2, '0')}`;
 
+                        const textToCopy = (segment.transcription_corrected || segment.transcription || '').replace(/'/g, "\\'");
+
                         segmentDiv.innerHTML = `
                             <div class="segment-header">
                                 <div class="segment-title">Segment ${segment.index + 1} (${timeRange})</div>
-                                <button class="segment-copy" onclick="copySegmentText('${segment.transcription}', this)">Copy</button>
+                                <button class="segment-copy" onclick="copySegmentText('${textToCopy}', this)">Copy</button>
                             </div>
                             <audio class="segment-audio" controls>
                                 <source src="/audio-segment/${sessionId}/${segment.index}" type="audio/mpeg">
