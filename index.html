@@ -513,6 +513,33 @@
             color: #ffffff;
         }
 
+        .auto-scroll-control {
+            margin-bottom: 20px;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        .auto-scroll-control label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666666;
+            font-weight: 400;
+            user-select: none;
+        }
+
+        .auto-scroll-control input[type="checkbox"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .auto-scroll-control label:hover {
+            color: #000000;
+        }
+
         .download-buttons {
             display: flex;
             gap: 10px;
@@ -867,6 +894,12 @@
             </div>
 
             <div class="segments-container" id="segmentsContainer">
+                <div class="auto-scroll-control">
+                    <label>
+                        <input type="checkbox" id="autoScrollCheckbox" checked>
+                        Auto-scroll to active word
+                    </label>
+                </div>
                 <div id="segmentsList"></div>
 
                 <div class="download-buttons" id="downloadButtons" style="display: none;">
@@ -891,6 +924,12 @@
             <div class="viewer-header">
                 <div class="viewer-title" id="viewerTitle">Session Details</div>
                 <button class="viewer-close" id="viewerClose">×</button>
+            </div>
+            <div class="auto-scroll-control">
+                <label>
+                    <input type="checkbox" id="autoScrollCheckboxViewer" checked>
+                    Auto-scroll to active word
+                </label>
             </div>
             <div class="viewer-segments" id="viewerSegments"></div>
         </div>
@@ -1225,10 +1264,26 @@
         const viewerTitle = document.getElementById('viewerTitle');
         const viewerSegments = document.getElementById('viewerSegments');
         const viewerClose = document.getElementById('viewerClose');
+        const autoScrollCheckbox = document.getElementById('autoScrollCheckbox');
+        const autoScrollCheckboxViewer = document.getElementById('autoScrollCheckboxViewer');
 
         let currentSessionId = null;
         let allSegments = [];
         let statusCheckInterval = null;
+
+        const autoScrollEnabled = localStorage.getItem('autoScrollEnabled') !== 'false';
+        autoScrollCheckbox.checked = autoScrollEnabled;
+        autoScrollCheckboxViewer.checked = autoScrollEnabled;
+
+        autoScrollCheckbox.addEventListener('change', (e) => {
+            localStorage.setItem('autoScrollEnabled', e.target.checked);
+            autoScrollCheckboxViewer.checked = e.target.checked;
+        });
+
+        autoScrollCheckboxViewer.addEventListener('change', (e) => {
+            localStorage.setItem('autoScrollEnabled', e.target.checked);
+            autoScrollCheckbox.checked = e.target.checked;
+        });
 
         realtimeTab.addEventListener('click', () => {
             realtimeTab.classList.add('active');
@@ -1673,10 +1728,13 @@
                     if (currentTime >= start && currentTime < end) {
                         allWords.forEach(w => w.classList.remove('active'));
                         wordSpan.classList.add('active');
-                        wordSpan.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'nearest'
-                        });
+
+                        if (localStorage.getItem('autoScrollEnabled') !== 'false') {
+                            wordSpan.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'nearest'
+                            });
+                        }
                     }
                 });
             });
