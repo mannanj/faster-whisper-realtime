@@ -1,10 +1,10 @@
 # Task 28: Add Clickable Word Timestamps in History Viewer
 
-- [ ] Update `viewSession()` to render words as clickable elements with timestamps
-- [ ] Add CSS styles for clickable words (hover effects, cursor pointer)
-- [ ] Implement click handler to seek audio to word's timestamp
-- [ ] Update segment display in File Upload tab to use same clickable word rendering
-- [ ] Add visual feedback when clicking words (highlight, active state)
+- [x] Update `viewSession()` to render words as clickable elements with timestamps
+- [x] Add CSS styles for clickable words (hover effects, cursor pointer)
+- [x] Implement click handler to seek audio to word's timestamp
+- [x] Update segment display in File Upload tab to use same clickable word rendering
+- [x] Add visual feedback when clicking words (highlight, active state)
 - **Location:** `index.html`
 
 ## Context

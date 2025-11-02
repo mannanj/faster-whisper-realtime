@@ -487,6 +487,23 @@
             font-style: italic;
         }
 
+        .word {
+            cursor: pointer;
+            transition: all 0.15s ease;
+            padding: 2px 1px;
+            border-radius: 3px;
+        }
+
+        .word:hover {
+            background: #f5f5f5;
+            color: #000000;
+        }
+
+        .word.active {
+            background: #000000;
+            color: #ffffff;
+        }
+
         .download-buttons {
             display: flex;
             gap: 10px;
@@ -1359,7 +1376,8 @@
                 index: data.segment,
                 transcription: data.transcription,
                 start_time: data.start_time,
-                end_time: data.end_time
+                end_time: data.end_time,
+                words: data.words
             };
             allSegments.push(segment);
 
@@ -1381,8 +1399,11 @@
                 <audio class="segment-audio" controls>
                     <source src="/audio-segment/${currentSessionId}/${data.segment}" type="audio/mpeg">
                 </audio>
-                <p class="segment-text">${data.transcription || '<span class="empty">Processing...</span>'}</p>
             `;
+
+            const audio = segmentDiv.querySelector('.segment-audio');
+            const textContainer = renderClickableTranscription(segment, audio);
+            segmentDiv.appendChild(textContainer);
 
             segmentsList.appendChild(segmentDiv);
 
@@ -1545,6 +1566,46 @@
             return card;
         }
 
+        function renderClickableTranscription(segment, audioElement) {
+            if (!segment.words || segment.words.length === 0) {
+                const p = document.createElement('p');
+                p.className = 'segment-text';
+                p.textContent = segment.transcription || '';
+                return p;
+            }
+
+            const container = document.createElement('p');
+            container.className = 'segment-text';
+
+            segment.words.forEach((wordData, index) => {
+                const wordSpan = document.createElement('span');
+                wordSpan.className = 'word';
+                wordSpan.textContent = wordData.word;
+                wordSpan.dataset.start = wordData.start;
+                wordSpan.dataset.end = wordData.end;
+
+                wordSpan.addEventListener('click', () => {
+                    audioElement.currentTime = wordData.start;
+                    audioElement.play();
+
+                    document.querySelectorAll('.word.active').forEach(w => w.classList.remove('active'));
+                    wordSpan.classList.add('active');
+
+                    setTimeout(() => {
+                        wordSpan.classList.remove('active');
+                    }, (wordData.end - wordData.start) * 1000);
+                });
+
+                container.appendChild(wordSpan);
+
+                if (index < segment.words.length - 1) {
+                    container.appendChild(document.createTextNode(' '));
+                }
+            });
+
+            return container;
+        }
+
         async function viewSession(sessionId) {
             try {
                 const response = await fetch(`/session/${sessionId}`);
@@ -1577,8 +1638,11 @@
                             <audio class="segment-audio" controls>
                                 <source src="/audio-segment/${sessionId}/${segment.index}" type="audio/mpeg">
                             </audio>
-                            <p class="segment-text">${segment.transcription || '<span class="empty">No transcription</span>'}</p>
                         `;
+
+                        const audio = segmentDiv.querySelector('.segment-audio');
+                        const textContainer = renderClickableTranscription(segment, audio);
+                        segmentDiv.appendChild(textContainer);
 
                         viewerSegments.appendChild(segmentDiv);
                     });
