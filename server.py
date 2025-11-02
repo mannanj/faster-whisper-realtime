@@ -75,6 +75,33 @@ def cleanup_old_sessions():
                 shutil.rmtree(session_dir)
                 print(f"Cleaned up old session: {session_dir.name}")
 
+def update_session_status(session_dir, status_data):
+    status_file = session_dir / 'status.json'
+    with open(status_file, 'w') as f:
+        json.dump(status_data, f, indent=2)
+
+def get_session_status(session_dir):
+    status_file = session_dir / 'status.json'
+    if not status_file.exists():
+        return None
+    with open(status_file, 'r') as f:
+        return json.load(f)
+
+def save_transcription_files(session_dir, segments_data, total_duration):
+    full_text = " ".join([seg['transcription'] for seg in segments_data]).strip()
+
+    txt_file = session_dir / 'transcription.txt'
+    with open(txt_file, 'w', encoding='utf-8') as f:
+        f.write(full_text)
+
+    json_file = session_dir / 'transcription.json'
+    with open(json_file, 'w', encoding='utf-8') as f:
+        json.dump({
+            'total_duration': total_duration,
+            'full_transcription': full_text,
+            'segments': segments_data
+        }, f, indent=2, ensure_ascii=False)
+
 @app.route('/')
 def index():
     return send_from_directory('.', 'index.html')
@@ -95,54 +122,108 @@ def transcribe_file():
         audio_file.save(temp_audio.name)
         temp_path = temp_audio.name
 
-    try:
-        print(f"Processing file for session {session_id}")
-        audio_segments, total_duration = split_audio_into_segments(temp_path, session_dir)
-        print(f"Split audio into {len(audio_segments)} segments (total duration: {total_duration:.2f}s)")
+    def generate_progress():
+        try:
+            print(f"Processing file for session {session_id}")
 
-        results = []
-        for segment_info in audio_segments:
-            idx = segment_info['index']
-            segment_path = segment_info['path']
-
-            print(f"Transcribing segment {idx}...")
-            start_time = time.time()
-            segments, info = model.transcribe(str(segment_path), beam_size=1, vad_filter=True)
-
-            transcription_parts = []
-            for seg in segments:
-                transcription_parts.append(seg.text)
-
-            transcription_text = " ".join(transcription_parts).strip()
-            transcription_time = time.time() - start_time
-            segment_duration = segment_info['end_time'] - segment_info['start_time']
-            rtf = transcription_time / segment_duration if segment_duration > 0 else 0
-
-            print(f"[Performance] Segment {idx}: {segment_duration:.2f}s audio in {transcription_time:.2f}s (RTF: {rtf:.2f}x)")
-
-            results.append({
-                'index': idx,
-                'start_time': segment_info['start_time'],
-                'end_time': segment_info['end_time'],
-                'transcription': transcription_text,
-                'audio_url': f'/audio-segment/{session_id}/{idx}',
-                'language': info.language if idx == 0 else results[0]['language']
+            update_session_status(session_dir, {
+                'status': 'splitting',
+                'session_id': session_id,
+                'started_at': time.time()
             })
 
-        return jsonify({
-            'session_id': session_id,
-            'total_duration': total_duration,
-            'segments': results
-        })
+            audio_segments, total_duration = split_audio_into_segments(temp_path, session_dir)
+            total_segments = len(audio_segments)
+            print(f"Split audio into {total_segments} segments (total duration: {total_duration:.2f}s)")
 
-    except Exception as e:
-        if session_dir.exists():
-            shutil.rmtree(session_dir)
-        return jsonify({'error': str(e)}), 500
+            yield f"data: {json.dumps({'type': 'started', 'session_id': session_id, 'total_segments': total_segments, 'total_duration': total_duration})}\n\n"
 
-    finally:
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
+            update_session_status(session_dir, {
+                'status': 'processing',
+                'session_id': session_id,
+                'total_segments': total_segments,
+                'current_segment': 0,
+                'total_duration': total_duration,
+                'started_at': time.time()
+            })
+
+            results = []
+            avg_rtf = 0.25
+
+            for segment_info in audio_segments:
+                idx = segment_info['index']
+                segment_path = segment_info['path']
+                segment_duration = segment_info['end_time'] - segment_info['start_time']
+
+                segments_remaining = total_segments - idx
+                estimated_remaining = int(segments_remaining * segment_duration * avg_rtf)
+                percent_complete = int((idx / total_segments) * 100)
+
+                update_session_status(session_dir, {
+                    'status': 'processing',
+                    'session_id': session_id,
+                    'total_segments': total_segments,
+                    'current_segment': idx,
+                    'percent_complete': percent_complete,
+                    'estimated_seconds_remaining': estimated_remaining,
+                    'total_duration': total_duration
+                })
+
+                yield f"data: {json.dumps({'type': 'progress', 'segment': idx, 'total_segments': total_segments, 'percent': percent_complete, 'estimated_remaining': estimated_remaining})}\n\n"
+
+                print(f"Transcribing segment {idx}...")
+                start_time = time.time()
+                segments, info = model.transcribe(str(segment_path), beam_size=1, vad_filter=True)
+
+                transcription_parts = []
+                for seg in segments:
+                    transcription_parts.append(seg.text)
+
+                transcription_text = " ".join(transcription_parts).strip()
+                transcription_time = time.time() - start_time
+                rtf = transcription_time / segment_duration if segment_duration > 0 else 0
+                avg_rtf = (avg_rtf * idx + rtf) / (idx + 1)
+
+                print(f"[Performance] Segment {idx}: {segment_duration:.2f}s audio in {transcription_time:.2f}s (RTF: {rtf:.2f}x)")
+
+                segment_result = {
+                    'index': idx,
+                    'start_time': segment_info['start_time'],
+                    'end_time': segment_info['end_time'],
+                    'transcription': transcription_text,
+                    'audio_url': f'/audio-segment/{session_id}/{idx}',
+                    'language': info.language if idx == 0 else results[0]['language']
+                }
+                results.append(segment_result)
+
+                yield f"data: {json.dumps({'type': 'segment_complete', 'segment': idx, 'transcription': transcription_text, 'start_time': segment_info['start_time'], 'end_time': segment_info['end_time']})}\n\n"
+
+            save_transcription_files(session_dir, results, total_duration)
+
+            update_session_status(session_dir, {
+                'status': 'complete',
+                'session_id': session_id,
+                'total_segments': total_segments,
+                'percent_complete': 100,
+                'total_duration': total_duration,
+                'completed_at': time.time()
+            })
+
+            yield f"data: {json.dumps({'type': 'complete', 'session_id': session_id, 'total_duration': total_duration, 'segments': results})}\n\n"
+
+        except Exception as e:
+            print(f"Error processing file: {e}")
+            update_session_status(session_dir, {
+                'status': 'error',
+                'error': str(e)
+            })
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+    return Response(stream_with_context(generate_progress()), mimetype='text/event-stream')
 
 @app.route('/audio-segment/<session_id>/<int:segment_index>')
 def serve_audio_segment(session_id, segment_index):
@@ -152,6 +233,41 @@ def serve_audio_segment(session_id, segment_index):
         return jsonify({'error': 'Segment not found'}), 404
 
     return send_file(segment_path, mimetype='audio/mpeg')
+
+@app.route('/transcribe-status/<session_id>')
+def get_transcribe_status(session_id):
+    session_dir = SESSIONS_DIR / session_id
+
+    if not session_dir.exists():
+        return jsonify({'error': 'Session not found'}), 404
+
+    status = get_session_status(session_dir)
+    if status is None:
+        return jsonify({'error': 'No status available'}), 404
+
+    return jsonify(status)
+
+@app.route('/download-transcription/<session_id>')
+@app.route('/download-transcription/<session_id>/<format>')
+def download_transcription(session_id, format='txt'):
+    session_dir = SESSIONS_DIR / session_id
+
+    if not session_dir.exists():
+        return jsonify({'error': 'Session not found'}), 404
+
+    if format == 'json':
+        file_path = session_dir / 'transcription.json'
+        mimetype = 'application/json'
+        download_name = f'transcription_{session_id}.json'
+    else:
+        file_path = session_dir / 'transcription.txt'
+        mimetype = 'text/plain'
+        download_name = f'transcription_{session_id}.txt'
+
+    if not file_path.exists():
+        return jsonify({'error': 'Transcription not found. Processing may not be complete.'}), 404
+
+    return send_file(file_path, mimetype=mimetype, as_attachment=True, download_name=download_name)
 
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
