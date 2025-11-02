@@ -281,6 +281,69 @@ def download_transcription(session_id, format='txt'):
 
     return send_file(file_path, mimetype=mimetype, as_attachment=True, download_name=download_name)
 
+@app.route('/sessions')
+def list_sessions():
+    sessions = []
+
+    for session_dir in SESSIONS_DIR.iterdir():
+        if not session_dir.is_dir():
+            continue
+
+        status_file = session_dir / 'status.json'
+        if not status_file.exists():
+            continue
+
+        try:
+            with open(status_file, 'r') as f:
+                status_data = json.load(f)
+
+            session_info = {
+                'session_id': session_dir.name,
+                'status': status_data.get('status', 'unknown'),
+                'total_duration': status_data.get('total_duration', 0),
+                'total_segments': status_data.get('total_segments', 0),
+                'created_at': status_data.get('started_at', session_dir.stat().st_ctime),
+                'completed_at': status_data.get('completed_at')
+            }
+            sessions.append(session_info)
+        except Exception as e:
+            print(f"Error reading session {session_dir.name}: {e}")
+            continue
+
+    sessions.sort(key=lambda x: x['created_at'], reverse=True)
+    return jsonify(sessions)
+
+@app.route('/session/<session_id>')
+def get_session(session_id):
+    session_dir = SESSIONS_DIR / session_id
+
+    if not session_dir.exists():
+        return jsonify({'error': 'Session not found'}), 404
+
+    transcription_file = session_dir / 'transcription.json'
+    if not transcription_file.exists():
+        return jsonify({'error': 'Transcription not found'}), 404
+
+    try:
+        with open(transcription_file, 'r') as f:
+            data = json.load(f)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/session/<session_id>', methods=['DELETE'])
+def delete_session(session_id):
+    session_dir = SESSIONS_DIR / session_id
+
+    if not session_dir.exists():
+        return jsonify({'error': 'Session not found'}), 404
+
+    try:
+        shutil.rmtree(session_dir)
+        return jsonify({'success': True, 'message': 'Session deleted'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
     if 'audio' not in request.files:
