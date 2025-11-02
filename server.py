@@ -10,6 +10,7 @@ from pathlib import Path
 from flask import Flask, request, jsonify, send_from_directory, Response, stream_with_context, send_file
 from flask_cors import CORS
 from faster_whisper import WhisperModel
+from llm_service import llm_service
 
 app = Flask(__name__, static_folder='.')
 CORS(app)
@@ -205,7 +206,14 @@ def transcribe_file():
                     'language': info.language if idx == 0 else results[0]['language']
                 }
                 if word_timestamps and all_words:
-                    segment_result['words'] = all_words
+                    corrected_text, aligned_words = llm_service.correct_and_align(
+                        transcription_text,
+                        all_words
+                    )
+                    segment_result['corrected_transcription'] = corrected_text
+                    segment_result['words'] = aligned_words
+                else:
+                    segment_result['words'] = all_words if all_words else []
                 results.append(segment_result)
 
                 yield f"data: {json.dumps({'type': 'segment_complete', 'segment': idx, 'transcription': transcription_text, 'start_time': segment_info['start_time'], 'end_time': segment_info['end_time']})}\n\n"

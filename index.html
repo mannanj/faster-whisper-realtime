@@ -1570,7 +1570,7 @@
             if (!segment.words || segment.words.length === 0) {
                 const p = document.createElement('p');
                 p.className = 'segment-text';
-                p.textContent = segment.transcription || '';
+                p.textContent = segment.corrected_transcription || segment.transcription || '';
                 return p;
             }
 
