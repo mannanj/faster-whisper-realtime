@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import os
-import tempfile
 import json
 import time
 import uuid
@@ -27,7 +26,6 @@ print("Model loaded successfully!")
 
 SESSIONS_DIR = Path(__file__).parent / "data" / "sessions"
 SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
-SESSION_TIMEOUT = 3600
 
 def get_audio_duration(audio_path):
     cmd = [
@@ -67,15 +65,6 @@ def split_audio_into_segments(audio_path, session_dir, segment_duration_seconds=
 
     return segments, total_duration
 
-def cleanup_old_sessions():
-    current_time = time.time()
-    for session_dir in SESSIONS_DIR.iterdir():
-        if session_dir.is_dir():
-            dir_age = current_time - session_dir.stat().st_mtime
-            if dir_age > SESSION_TIMEOUT:
-                shutil.rmtree(session_dir)
-                print(f"Cleaned up old session: {session_dir.name}")
-
 def update_session_status(session_dir, status_data):
     status_file = session_dir / 'status.json'
     with open(status_file, 'w') as f:
@@ -109,8 +98,6 @@ def index():
 
 @app.route('/transcribe-file', methods=['POST'])
 def transcribe_file():
-    cleanup_old_sessions()
-
     if 'audio' not in request.files:
         return jsonify({'error': 'No audio file provided'}), 400
 
@@ -120,9 +107,9 @@ def transcribe_file():
     session_dir = SESSIONS_DIR / session_id
     session_dir.mkdir(exist_ok=True)
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.tmp') as temp_audio:
-        audio_file.save(temp_audio.name)
-        temp_path = temp_audio.name
+    audio_path = session_dir / 'original_audio.webm'
+    audio_file.save(str(audio_path))
+    temp_path = str(audio_path)
 
     def generate_progress():
         try:
@@ -203,17 +190,16 @@ def transcribe_file():
                     'end_time': segment_info['end_time'],
                     'transcription': transcription_text,
                     'audio_url': f'/audio-segment/{session_id}/{idx}',
-                    'language': info.language if idx == 0 else results[0]['language']
+                    'language': info.language if idx == 0 else results[0]['language'],
+                    'words': all_words if all_words else []
                 }
                 if word_timestamps and all_words:
                     corrected_text, aligned_words = llm_service.correct_and_align(
                         transcription_text,
                         all_words
                     )
-                    segment_result['corrected_transcription'] = corrected_text
-                    segment_result['words'] = aligned_words
-                else:
-                    segment_result['words'] = all_words if all_words else []
+                    segment_result['transcription_corrected'] = corrected_text
+                    segment_result['words_corrected'] = aligned_words
                 results.append(segment_result)
 
                 yield f"data: {json.dumps({'type': 'segment_complete', 'segment': idx, 'transcription': transcription_text, 'start_time': segment_info['start_time'], 'end_time': segment_info['end_time']})}\n\n"
@@ -238,10 +224,6 @@ def transcribe_file():
                 'error': str(e)
             })
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
-
-        finally:
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
 
     return Response(stream_with_context(generate_progress()), mimetype='text/event-stream')
 
@@ -359,9 +341,13 @@ def transcribe():
 
     audio_file = request.files['audio']
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.webm') as temp_audio:
-        audio_file.save(temp_audio.name)
-        temp_path = temp_audio.name
+    session_id = str(uuid.uuid4())
+    session_dir = SESSIONS_DIR / session_id
+    session_dir.mkdir(exist_ok=True)
+
+    audio_path = session_dir / 'original_audio.webm'
+    audio_file.save(str(audio_path))
+    temp_path = str(audio_path)
 
     def generate_segments():
         try:
@@ -382,10 +368,6 @@ def transcribe():
         except Exception as e:
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
 
-        finally:
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
-
     return Response(stream_with_context(generate_segments()), mimetype='text/event-stream')
 
 @app.route('/transcribe-live', methods=['POST'])
@@ -399,11 +381,13 @@ def transcribe_live():
 
     print(f"\n[Server] Received chunk {chunk_index} for session {session_id}")
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.webm') as temp_audio:
-        audio_chunk.save(temp_audio.name)
-        chunk_size = os.path.getsize(temp_audio.name)
-        temp_path = temp_audio.name
-        print(f"[Server] Chunk {chunk_index} size: {chunk_size} bytes, saved to {temp_path}")
+    session_dir = SESSIONS_DIR / session_id
+    session_dir.mkdir(exist_ok=True)
+    chunk_path = session_dir / f'chunk_{chunk_index}.webm'
+    audio_chunk.save(str(chunk_path))
+    chunk_size = os.path.getsize(str(chunk_path))
+    temp_path = str(chunk_path)
+    print(f"[Server] Chunk {chunk_index} size: {chunk_size} bytes, saved to {temp_path}")
 
     def generate_segments():
         try:
@@ -432,11 +416,6 @@ def transcribe_live():
         except Exception as e:
             print(f"[Server] Error transcribing chunk {chunk_index}: {e}")
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
-
-        finally:
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
-                print(f"[Server] Cleaned up temp file for chunk {chunk_index}")
 
     return Response(stream_with_context(generate_segments()), mimetype='text/event-stream')
 
