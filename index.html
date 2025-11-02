@@ -540,48 +540,6 @@
             color: #000000;
         }
 
-        .live-indicator {
-            position: sticky;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #000000;
-            color: #ffffff;
-            padding: 10px 20px;
-            border-radius: 24px;
-            font-size: 14px;
-            font-weight: 400;
-            cursor: pointer;
-            z-index: 10;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            user-select: none;
-            white-space: nowrap;
-            transition: background 0.2s ease;
-        }
-
-        .live-indicator.above {
-            top: 10px;
-            animation: slideInTop 0.3s ease;
-        }
-
-        .live-indicator.below {
-            bottom: 10px;
-            animation: slideInBottom 0.3s ease;
-        }
-
-        .live-indicator:hover {
-            background: #333333;
-        }
-
-        @keyframes slideInTop {
-            from { transform: translate(-50%, -100%); opacity: 0; }
-            to { transform: translate(-50%, 0); opacity: 1; }
-        }
-
-        @keyframes slideInBottom {
-            from { transform: translate(-50%, 100%); opacity: 0; }
-            to { transform: translate(-50%, 0); opacity: 1; }
-        }
-
         .download-buttons {
             display: flex;
             gap: 10px;
@@ -1725,10 +1683,6 @@
             const container = document.createElement('p');
             container.className = 'segment-text';
 
-            let isAutoScrolling = false;
-            let browseMode = false;
-            let liveIndicator = null;
-
             const wordTexts = words.map(w => w.word);
             const newlinePositions = findNewlinePositions(wordTexts, text);
 
@@ -1763,85 +1717,6 @@
                 }
             });
 
-            function isWordAboveViewport(element) {
-                const rect = element.getBoundingClientRect();
-                const containerRect = container.getBoundingClientRect();
-                return rect.top < containerRect.top;
-            }
-
-            function createLiveIndicator(direction) {
-                const indicator = document.createElement('div');
-                indicator.className = `live-indicator ${direction}`;
-                indicator.innerHTML = direction === 'above' ? '↑ Return to live' : '↓ Return to live';
-                indicator.addEventListener('click', returnToLive);
-                return indicator;
-            }
-
-            function showLiveIndicator() {
-                const activeWord = container.querySelector('.word.active');
-                if (!activeWord || !audioElement || audioElement.paused) return;
-
-                const direction = isWordAboveViewport(activeWord) ? 'above' : 'below';
-
-                if (liveIndicator) {
-                    const currentDirection = liveIndicator.classList.contains('above') ? 'above' : 'below';
-                    if (currentDirection !== direction) {
-                        hideLiveIndicator();
-                        liveIndicator = createLiveIndicator(direction);
-                        container.insertBefore(liveIndicator, container.firstChild);
-                    }
-                } else {
-                    liveIndicator = createLiveIndicator(direction);
-                    container.insertBefore(liveIndicator, container.firstChild);
-                }
-            }
-
-            function hideLiveIndicator() {
-                if (liveIndicator) {
-                    liveIndicator.remove();
-                    liveIndicator = null;
-                }
-            }
-
-            function enterBrowseMode() {
-                if (browseMode) return;
-                browseMode = true;
-
-                autoScrollCheckbox.checked = false;
-                autoScrollCheckboxViewer.checked = false;
-                localStorage.setItem('autoScrollEnabled', 'false');
-
-                showLiveIndicator();
-            }
-
-            function exitBrowseMode() {
-                browseMode = false;
-
-                autoScrollCheckbox.checked = true;
-                autoScrollCheckboxViewer.checked = true;
-                localStorage.setItem('autoScrollEnabled', 'true');
-
-                hideLiveIndicator();
-            }
-
-            function returnToLive() {
-                const activeWord = container.querySelector('.word.active');
-                if (activeWord) {
-                    isAutoScrolling = true;
-                    activeWord.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    setTimeout(() => {
-                        isAutoScrolling = false;
-                    }, 500);
-                }
-                exitBrowseMode();
-            }
-
-            container.addEventListener('scroll', () => {
-                if (!isAutoScrolling && audioElement && !audioElement.paused) {
-                    enterBrowseMode();
-                }
-            });
-
             audioElement.addEventListener('timeupdate', () => {
                 const currentTime = audioElement.currentTime;
                 const allWords = container.querySelectorAll('.word');
@@ -1854,38 +1729,23 @@
                         allWords.forEach(w => w.classList.remove('active'));
                         wordSpan.classList.add('active');
 
-                        if (!browseMode && localStorage.getItem('autoScrollEnabled') !== 'false') {
-                            isAutoScrolling = true;
+                        if (localStorage.getItem('autoScrollEnabled') !== 'false') {
                             wordSpan.scrollIntoView({
                                 behavior: 'smooth',
                                 block: 'nearest'
                             });
-                            setTimeout(() => {
-                                isAutoScrolling = false;
-                            }, 200);
-                        }
-
-                        if (browseMode && liveIndicator) {
-                            const newDirection = isWordAboveViewport(wordSpan) ? 'above' : 'below';
-                            const currentDirection = liveIndicator.classList.contains('above') ? 'above' : 'below';
-                            if (newDirection !== currentDirection) {
-                                hideLiveIndicator();
-                                showLiveIndicator();
-                            }
                         }
                     }
                 });
             });
 
             audioElement.addEventListener('pause', () => {
-                exitBrowseMode();
                 container.querySelectorAll('.word.active').forEach(w =>
                     w.classList.remove('active')
                 );
             });
 
             audioElement.addEventListener('ended', () => {
-                exitBrowseMode();
                 container.querySelectorAll('.word.active').forEach(w =>
                     w.classList.remove('active')
                 );

@@ -1,12 +1,11 @@
 # Task 39: Smart Auto-Scroll with "Return to Live" Floating Indicator
 
-- [x] Detect user scrolling vs auto-scroll
-- [x] Show/hide floating indicator based on scroll state
-- [x] Position indicator (top/bottom) based on active word location
-- [x] Implement "return to live" functionality on indicator click
-- [x] Add smooth animations for indicator appearance/disappearance
-- [x] Style indicator to match existing design system
-- [x] Integrate with auto-scroll checkbox (disable on scroll, enable on return)
+- [ ] Detect user scrolling vs auto-scroll
+- [ ] Show/hide floating indicator based on scroll state
+- [ ] Position indicator (top/bottom) based on active word location
+- [ ] Implement "return to live" functionality on indicator click
+- [ ] Add smooth animations for indicator appearance/disappearance
+- [ ] Style indicator to match existing design system
 - **Location:** `index.html` (renderClickableTranscription function, CSS)
 
 ## Context
