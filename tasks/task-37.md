@@ -1,10 +1,10 @@
 # Task 37: Active Word Highlighting During Audio Playback
 
-- [ ] Add timeupdate event listener to audio elements
-- [ ] Implement word highlighting based on playback time
-- [ ] Clear highlighting when audio pauses/stops
-- [ ] Handle edge cases (seeking, speed changes)
-- [ ] Add smooth visual feedback for active word
+- [x] Add timeupdate event listener to audio elements
+- [x] Implement word highlighting based on playback time
+- [x] Clear highlighting when audio pauses/stops
+- [x] Handle edge cases (seeking, speed changes)
+- [x] Add smooth visual feedback for active word
 - **Location:** `index.html` (JavaScript audio event handlers)
 
 ## Context

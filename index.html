@@ -1662,6 +1662,37 @@
                 }
             });
 
+            audioElement.addEventListener('timeupdate', () => {
+                const currentTime = audioElement.currentTime;
+                const allWords = container.querySelectorAll('.word');
+
+                allWords.forEach(wordSpan => {
+                    const start = parseFloat(wordSpan.dataset.start);
+                    const end = parseFloat(wordSpan.dataset.end);
+
+                    if (currentTime >= start && currentTime < end) {
+                        allWords.forEach(w => w.classList.remove('active'));
+                        wordSpan.classList.add('active');
+                        wordSpan.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'nearest'
+                        });
+                    }
+                });
+            });
+
+            audioElement.addEventListener('pause', () => {
+                container.querySelectorAll('.word.active').forEach(w =>
+                    w.classList.remove('active')
+                );
+            });
+
+            audioElement.addEventListener('ended', () => {
+                container.querySelectorAll('.word.active').forEach(w =>
+                    w.classList.remove('active')
+                );
+            });
+
             return container;
         }
 
