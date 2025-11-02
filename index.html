@@ -426,6 +426,7 @@
         }
 
         .segment {
+            position: relative;
             background: #ffffff;
             border: 1px solid #000000;
             border-radius: 12px;
@@ -470,12 +471,18 @@
         }
 
         .segment-audio {
+            position: sticky;
+            top: 0;
+            background: #ffffff;
+            z-index: 10;
             width: 100%;
             margin-bottom: 15px;
             border-radius: 8px;
         }
 
         .segment-text {
+            max-height: 500px;
+            overflow-y: auto;
             color: #000000;
             font-size: 16px;
             line-height: 1.8;
