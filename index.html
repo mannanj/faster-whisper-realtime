@@ -46,8 +46,10 @@
 
         .tabs {
             display: flex;
+            flex-direction: row;
             gap: 10px;
             margin-bottom: 0;
+            width: 100%;
         }
 
         .tab {
@@ -75,10 +77,12 @@
 
         .tab-content {
             display: none;
+            width: 100%;
         }
 
         .tab-content.active {
-            display: block;
+            display: flex;
+            flex-direction: column;
         }
 
         .main-card {
@@ -337,11 +341,12 @@
         .upload-zone {
             border: 2px dashed #000000;
             border-radius: 12px;
-            padding: 60px 40px;
+            padding: 100px 120px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s ease;
             background: #ffffff;
+            width: 100%;
         }
 
         .upload-zone:hover {
@@ -367,7 +372,7 @@
         }
 
         .progress-container {
-            margin-top: 30px;
+            width: 100%;
             display: none;
         }
 
@@ -411,7 +416,7 @@
         }
 
         .segments-container {
-            margin-top: 30px;
+            width: 100%;
             display: none;
         }
 
@@ -485,8 +490,9 @@
         .download-buttons {
             display: flex;
             gap: 10px;
-            margin-top: 20px;
+            margin-top: 30px;
             justify-content: center;
+            width: 100%;
         }
 
         .download-button {
@@ -519,7 +525,7 @@
             font-weight: 400;
             transition: all 0.2s ease;
             width: 100%;
-            margin-top: 20px;
+            margin-top: 15px;
         }
 
         .copy-all-button:hover {
@@ -534,6 +540,15 @@
         }
 
         @media (max-width: 600px) {
+            .tabs {
+                flex-direction: row;
+            }
+
+            .tab {
+                font-size: 14px;
+                padding: 12px 20px;
+            }
+
             .main-card {
                 padding: 40px 30px;
             }
@@ -550,6 +565,10 @@
 
             .permission-prompt {
                 padding: 40px 30px;
+            }
+
+            .upload-zone {
+                padding: 60px 40px;
             }
         }
     </style>
@@ -614,37 +633,36 @@
         </div>
 
         <div id="errorMessage" class="error-message" style="display: none;"></div>
-        </div>
-        </div>
+    </div>
 
-        <div id="uploadContent" class="tab-content">
-            <div class="main-card">
-                <div class="upload-zone" id="uploadZone">
-                    <input type="file" id="fileInput" accept="audio/*,video/*" />
-                    <p>Drop audio file here or click to upload</p>
-                    <p style="font-size: 14px; color: #999;">Supports all audio formats (MP3, WAV, M4A, etc.)</p>
+    <div id="uploadContent" class="tab-content">
+        <div class="main-card">
+            <div class="upload-zone" id="uploadZone">
+                <input type="file" id="fileInput" accept="audio/*,video/*" />
+                <p style="font-size: 18px; font-weight: 400; margin-bottom: 15px; color: #666;">Drop audio file here or click to upload</p>
+                <p style="font-size: 14px; color: #999;">Supports all audio formats (MP3, WAV, M4A, etc.)</p>
+            </div>
+
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar" id="progressBar"></div>
+                    <div class="progress-text" id="progressText">0%</div>
+                </div>
+                <div class="progress-info" id="progressInfo">Preparing...</div>
+            </div>
+
+            <div class="segments-container" id="segmentsContainer">
+                <div id="segmentsList"></div>
+
+                <div class="download-buttons" id="downloadButtons" style="display: none;">
+                    <a class="download-button" id="downloadTxt" download>Download TXT</a>
+                    <a class="download-button" id="downloadJson" download>Download JSON</a>
                 </div>
 
-                <div class="progress-container" id="progressContainer">
-                    <div class="progress-bar-wrapper">
-                        <div class="progress-bar" id="progressBar"></div>
-                        <div class="progress-text" id="progressText">0%</div>
-                    </div>
-                    <div class="progress-info" id="progressInfo">Preparing...</div>
-                </div>
-
-                <div class="segments-container" id="segmentsContainer">
-                    <div id="segmentsList"></div>
-
-                    <div class="download-buttons" id="downloadButtons" style="display: none;">
-                        <a class="download-button" id="downloadTxt" download>Download TXT</a>
-                        <a class="download-button" id="downloadJson" download>Download JSON</a>
-                    </div>
-
-                    <button class="copy-all-button" id="copyAllButton" style="display: none;">Copy All Transcriptions</button>
-                </div>
+                <button class="copy-all-button" id="copyAllButton" style="display: none;">Copy All Transcriptions</button>
             </div>
         </div>
+    </div>
     </div>
 
     <script>
@@ -1027,6 +1045,7 @@
 
             const formData = new FormData();
             formData.append('audio', file);
+            formData.append('word_timestamps', 'true');
 
             try {
                 const response = await fetch('/transcribe-file', {

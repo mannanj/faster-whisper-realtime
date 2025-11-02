@@ -24,8 +24,8 @@ print("Loading Whisper model...")
 model = WhisperModel("base", device="cpu", compute_type="int8")
 print("Model loaded successfully!")
 
-SESSIONS_DIR = Path(tempfile.gettempdir()) / "whisper_sessions"
-SESSIONS_DIR.mkdir(exist_ok=True)
+SESSIONS_DIR = Path(__file__).parent / "data" / "sessions"
+SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
 SESSION_TIMEOUT = 3600
 
 def get_audio_duration(audio_path):
@@ -114,6 +114,7 @@ def transcribe_file():
         return jsonify({'error': 'No audio file provided'}), 400
 
     audio_file = request.files['audio']
+    word_timestamps = request.form.get('word_timestamps', 'false').lower() == 'true'
     session_id = str(uuid.uuid4())
     session_dir = SESSIONS_DIR / session_id
     session_dir.mkdir(exist_ok=True)
@@ -173,11 +174,20 @@ def transcribe_file():
 
                 print(f"Transcribing segment {idx}...")
                 start_time = time.time()
-                segments, info = model.transcribe(str(segment_path), beam_size=1, vad_filter=True)
+                segments, info = model.transcribe(str(segment_path), beam_size=1, vad_filter=True, word_timestamps=word_timestamps)
 
                 transcription_parts = []
+                all_words = []
                 for seg in segments:
                     transcription_parts.append(seg.text)
+                    if word_timestamps and hasattr(seg, 'words') and seg.words:
+                        for word in seg.words:
+                            all_words.append({
+                                'word': word.word,
+                                'start': word.start,
+                                'end': word.end,
+                                'probability': word.probability
+                            })
 
                 transcription_text = " ".join(transcription_parts).strip()
                 transcription_time = time.time() - start_time
@@ -194,6 +204,8 @@ def transcribe_file():
                     'audio_url': f'/audio-segment/{session_id}/{idx}',
                     'language': info.language if idx == 0 else results[0]['language']
                 }
+                if word_timestamps and all_words:
+                    segment_result['words'] = all_words
                 results.append(segment_result)
 
                 yield f"data: {json.dumps({'type': 'segment_complete', 'segment': idx, 'transcription': transcription_text, 'start_time': segment_info['start_time'], 'end_time': segment_info['end_time']})}\n\n"
